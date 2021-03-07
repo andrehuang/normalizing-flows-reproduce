@@ -17,3 +17,5 @@ To Angeliki:
 2. The loss.py file is copied from Sylvester flow. But I haven't tried it or tested it. I think you can write your own version of loss function using that as a reference.
 
 3. You also need to write training and testing code of MNIST. I think you can work on *Colab* and forget about that `main_VAE.py` file.
+
+I expect that it would not be easy to match the results in the paper. We will need to carefully check whether we match the implementations in the paper, and tuning the unmentioned model architectures and hyperparameters. This would take quite some time. We will need at least one more person to work on reproducing the original paper.
