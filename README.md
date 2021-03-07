@@ -5,11 +5,11 @@ ATML Group 10
 by Haiwen
 
 Basic implementations
-[x] Planar flow
-[x] VAE, and VAE with planar flow
-[x] Binarized MNIST dataset and data loader
-[] Loss function 
-[] Training and testing of MNIST
+- [x] Planar flow
+- [x] VAE, and VAE with planar flow
+- [x] Binarized MNIST dataset and data loader
+- [] Loss function 
+- [] Training and testing of MNIST
 
 To Angeliki:
 1. I have tested the flow and VAE with flow implementation. You can continue from that. I wrote a few lines of examples on how to define these models.
