@@ -17,7 +17,7 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, b
     :return: loss, ce, kl
     """
     batch_size = x.size(0) 
-    if (summ == True):  ## Computes the binary loss function with summing over batch dimension
+    if (summ == True):  ## Computes the binary loss function with summing over batch dimension 
         
         #Reconstruction loss: Binary cross entropy
         reconstruction_loss = nn.BCELoss(reduction='sum')
