@@ -31,6 +31,7 @@ by Angeliki
 - [x] Script for running everything -> main_experiment_VAE
 
 I have tested the optimization/loss.py, optimization/training.py, util/distributions.py and util/log_likelihood.py and main_experiment_VAE.py implementations.
+
 util/log_likelihood.py which calculates the true marginal likelihood by importance sampling was adopted as it was from the reference code (i.e. Sylvester flows) - if someone wants, they can write their own version of it.
 
 *Density estimation/ Reproduce Fig.3
