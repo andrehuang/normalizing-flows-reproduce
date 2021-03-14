@@ -33,6 +33,7 @@ by Angeliki
 *Density estimation/ Reproduce Fig.3
 
 I have implemented the code for the reproduction of Fig. 3 (a), (b) of the paper. I have uploaded the files accompanied by a notebook in the folder VI_planar_flows. I will fill this report here explaining more tomorrow, since I think this part is not related to what Ella will start doing tomorrow (and it's quite late in the night xD). 
+reference: https://github.com/e-hulten/planar-flows
 
 In relation to the MNIST experiment: 
 
