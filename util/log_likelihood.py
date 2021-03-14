@@ -6,6 +6,8 @@ from optimization.loss import binary_loss_function
 ## Code adopted from
 # https://github.com/riannevdberg/sylvester-flows/blob/master/utils/log_likelihood.py
 
+#calculates the true marginal likelihood by IS 
+
 def calculate_likelihood(X, model, args, S=5000, MB=500):
 
     # set auxiliary variables for number of training and test sets
