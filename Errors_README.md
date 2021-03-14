@@ -22,19 +22,27 @@ To find where the error comes from, I run the Sylvester reference code, with onl
 Because of these changes, some modifications in the main_experiment.py should also be done 
 
 - at line 85 add:
+
 parser.add_argument('--encoder_dim', type=int, default=256, metavar='ESIZE',
                     help='output feature dim of encoder')
+                    
 parser.add_argument('--decoder_dim', type=int, default=256, metavar='DSIZE',
                     help='output feature dim of decoder')
+                    
 parser.add_argument('-db', '--dynamic_binarization', default=False) 
+
 parser.add_argument('-it', '--input_type', default='binary') 
 
 - at elif args.flow == 'planar' body at line 153 replace with:
+
     encoder = MLP_encoder(args)
+    
     decoder = MLP_decoder(args)
+    
     model = VAE.PlanarVAE(encoder, decoder, args)
     
 - at the start of the file main_experiment.py, import:
+
 from models.model import MLP_encoder, MLP_decoder
 
 
