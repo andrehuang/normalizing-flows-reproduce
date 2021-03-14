@@ -3,6 +3,8 @@ import numpy as np
 from scipy.special import logsumexp
 from optimization.loss import binary_loss_function
 
+## Code adopted from
+# https://github.com/riannevdberg/sylvester-flows/blob/master/utils/log_likelihood.py
 
 def calculate_likelihood(X, model, args, S=5000, MB=500):
 
