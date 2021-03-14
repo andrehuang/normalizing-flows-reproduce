@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from utils.distributions import normal_dist
+from util.distributions import normal_dist
 
 
 def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, beta=1. , summ = True):
