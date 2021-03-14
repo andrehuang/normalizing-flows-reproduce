@@ -1,6 +1,6 @@
 import torch
 from optimization.loss import binary_loss_function
-from utils.log_likelihood import calculate_likelihood
+from util.log_likelihood import calculate_likelihood
 import numpy as np
 
 
