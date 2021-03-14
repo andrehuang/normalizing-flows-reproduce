@@ -10,8 +10,8 @@ import random
 import models.VAE as VAE
 from models.model import MLP_encoder, MLP_decoder
 from optimization.training import train, evaluate
-from utils.load_data import load_dataset
-from utils.plotting import plot_training_curve
+from util.load_data import load_dataset
+from util.plotting import plot_training_curve
 
 
 parser = argparse.ArgumentParser(description='PyTorch Sylvester Normalizing flows')
