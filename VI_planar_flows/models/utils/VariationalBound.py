@@ -1,8 +1,6 @@
-from __future__ import print_function
-
 import numpy as np
 import torch
-from util.distributions import normal_dist
+from utils.distributions import normal_dist
 
 def binary_loss_function(target_distr, z_0, z_k, log_det_jacobians, beta=1.): ####should add z_mu, z_var when I also replace the planarFlow
         
