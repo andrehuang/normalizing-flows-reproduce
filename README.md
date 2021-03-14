@@ -30,6 +30,9 @@ by Angeliki
 - [x] Training and testing of MNIST
 - [x] Script for running everything -> main_experiment_VAE
 
+I have tested the optimization/loss.py, optimization/training.py, util/distributions.py and util/log_likelihood.py and main_experiment_VAE.py implementations.
+util/log_likelihood.py which calculates the true marginal likelihood by importance sampling was adopted as it was from the reference code (i.e. Sylvester flows) - if someone wants, they can write their own version of it.
+
 *Density estimation/ Reproduce Fig.3
 
 I have implemented the code for the reproduction of Fig. 3 (a), (b) of the paper. I have uploaded the files accompanied by a notebook in the folder VI_planar_flows. I will fill this report here explaining more tomorrow, since I think this part is not related to what Ella will start doing tomorrow (and it's quite late in the night xD). 
@@ -37,10 +40,15 @@ reference: https://github.com/e-hulten/planar-flows
 
 In relation to the MNIST experiment: 
 
-I have tested the MNIST training/testing for length of flows K=4 and K=10 for 1000 epochs (500k parameter updates). The results are shown in the test_colab notebook. For the case of K=10, a cuda-related error (I think it's Colab related) terminated the program (in epoch 754) and because of that I didn't check the final ELBO and the final lnp(x) values. However, for many epochs before the 754th the algorithm was stack at a validation set loss around 104, whereas we want it (the test set loss, but they are close) to be around 93-94, according to Fig 4a. For the case of K=4, ELBO was around 95 and lnp(x) around 89, which are the needed values. 
+- I have tested the MNIST training/testing for length of flows K=4 and K=10 for 1000 epochs (500k parameter updates). The results are shown in the test_colab notebook. For the case of K=10, a cuda-related error (I think it's Colab related) terminated the program (in epoch 754) and because of that I didn't check the final ELBO and the final lnp(x) values. However, for many epochs before and until the 754th, the algorithm was stack at a validation set loss around 104, whereas we want it (the test set loss, but they are close) to be around 93-94, according to Fig 4a. For the case of K=4, ELBO was around 95 and lnp(x) around 89, which are the needed values. 
 
-For the K=10 case, I think that with the change of the architecture of the encoder/decoder the values of ELBO and lnp(x) might get better. 
+For the K=10 case, I expect that with the change of the architecture of the encoder/decoder the values of ELBO and lnp(x) will get better. 
 
-Also, I noticed that when using our code and functions and only use the reference (i.e. Sylvester) code for the models.flows we get better results for the K=10 case (Validation set loss: 91.8). The only difference in their implementantion of models.flows is the use a u_hat instead of u.
+Also, I noticed that when using our code and functions and only use the reference (i.e. Sylvester) code for the models.flows we get better results for the K=10 case (Validation set loss: 91.8). The only difference in their implementantion of models.flows is the use of u_hat instead of u.
+
+
+- For number of flows K=10, I encounter an error which, after investigating its cause, seems to me that is VAE architecture related. I describe the procedure for the reproduction of the error and the reason why I believe it's VAE architecture related in detail in the file Errors_README.
 
 To Ella: you can start adjusting the architecture/hyperparameters of encoder/decoder of the VAE. 
+
+
