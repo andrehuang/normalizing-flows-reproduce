@@ -25,7 +25,7 @@ I expect that it would not be easy to match the results in the paper. We will ne
 ## Update March. 14
 by Angeliki
 
-*Basic implementations*
+**Basic implementations*
 - [x] Loss function 
 - [x] Training and testing of MNIST
 - [x] Script for running everything -> main_experiment_VAE
@@ -34,7 +34,7 @@ I have tested the optimization/loss.py, optimization/training.py, util/distribut
 
 util/log_likelihood.py which calculates the true marginal likelihood by importance sampling was adopted as it was from the reference code (i.e. Sylvester flows) - if someone wants, they can write their own version of it.
 
-*Density estimation/ Reproduce Fig.3*
+**Density estimation/ Reproduce Fig.3*
 
 I have implemented the code for the reproduction of Fig. 3 (a), (b) of the paper. I have uploaded the files accompanied by a notebook in the folder VI_planar_flows. I will fill this report here explaining more tomorrow, since I think this part is not related to what Ella will start doing tomorrow (and it's quite late in the night xD). 
 reference: https://github.com/e-hulten/planar-flows
