@@ -41,6 +41,6 @@ I have tested the MNIST training/testing for length of flows K=4 and K=10 for 10
 
 For the K=10 case, I think that with the change of the architecture of the encoder/decoder the values of ELBO and lnp(x) might get better. 
 
-Also, I noticed that when using our code and functions and only use the reference (i.e. Sylvester) code for the models.flows we get better results for the K=10 case (Validation set loss: 91.8018). The only difference in their implementantion of models.flows is the use a u_hat instead of u.
+Also, I noticed that when using our code and functions and only use the reference (i.e. Sylvester) code for the models.flows we get better results for the K=10 case (Validation set loss: 91.8). The only difference in their implementantion of models.flows is the use a u_hat instead of u.
 
 To Ella: you can start adjusting the architecture/hyperparameters of encoder/decoder of the VAE. 
