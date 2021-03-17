@@ -42,7 +42,7 @@ def train(epoch, train_loader, model, opt, args):
 
     print('====> Epoch: {:3d} Average train loss: {:.4f}'.format(
             epoch, train_loss.sum() / len(train_loader)))
-     print('beta = {:5.4f}'.format(beta))
+    print('beta = {:5.4f}'.format(beta))
         
     return train_loss
 
