@@ -11,14 +11,12 @@ def train(epoch, train_loader, model, opt, args):
     num_data = 0
     index = -1
     
-    # Beta-warmup
-    beta = min([(epoch * 1.) / max([args.warmup, 1.]), args.max_beta])
-    print('beta = {:5.4f}'.format(beta))
-    
     for data, _ in train_loader:     
         
         index += 1
-
+        # Beta-warmup
+        beta = min(0.01 + ((epoch - 1) * 500 + index + 1) / 10000 , 1)
+        
         if args.cuda:
             data = data.cuda()
 
@@ -44,7 +42,8 @@ def train(epoch, train_loader, model, opt, args):
 
     print('====> Epoch: {:3d} Average train loss: {:.4f}'.format(
             epoch, train_loss.sum() / len(train_loader)))
-
+     print('beta = {:5.4f}'.format(beta))
+        
     return train_loss
 
 
