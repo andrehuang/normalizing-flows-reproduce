@@ -27,9 +27,9 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, b
         log_p_zk = normal_dist(z_k, mean=0, logvar=z_var*0, dim=1) ###what shape does z_var has ???? # ln p(z_k) = N(0,I) 
         log_q_z0 = normal_dist(z_0, mean=z_mu, logvar=z_var.log(), dim=1)
   
-        kl = torch.sum(log_q_z0 - log_p_zk) - torch.sum(log_det_jacobians) #sum over batches
+        kl = torch.sum(log_q_z0 - beta * log_p_zk) - torch.sum(log_det_jacobians) #sum over batches
         
-        energy = log_p_xz + beta *kl
+        energy = beta * log_p_xz + kl
     
         energy = energy / batch_size
         log_p_xz = log_p_xz / batch_size
@@ -48,9 +48,9 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, b
         log_p_zk = normal_dist(z_k, mean=0, logvar=z_var*0, dim=1)
         log_q_z0 = normal_dist(z_0, mean=z_mu, logvar=z_var.log(), dim=1)
 
-        logs = log_q_z0 - log_p_zk
+        logs = log_q_z0 - beta * log_p_zk
 
-        loss = log_p_xz + beta * (logs - log_det_jacobians)
+        loss = beta * log_p_xz + logs - log_det_jacobians
 
         return loss, log_p_xz, (logs - log_det_jacobians)
 
