@@ -1,8 +1,7 @@
 import torch
+import numpy as np
 from optimization.loss import binary_loss_function
 from util.log_likelihood import calculate_likelihood
-import numpy as np
-
 
 def train(epoch, train_loader, model, opt, args):
 
@@ -14,7 +13,7 @@ def train(epoch, train_loader, model, opt, args):
     for data, _ in train_loader:     
         
         index += 1
-        # Beta-warmup
+        # Beta-annealing
         beta = min(0.01 + ((epoch - 1) * 500 + index + 1) / 10000 , 1)
         
         if args.cuda:
@@ -23,9 +22,9 @@ def train(epoch, train_loader, model, opt, args):
         data = data.view(-1, *args.input_size) 
 
         #Pass throught the VAE + flows 
-        x_mean, z_mu, z_var, ldj, z0, zk = model(data)
+        x_mean, z_mu, z_var, log_det_jacobians, z0, zk = model(data)
         #Compute the loss 
-        loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, ldj, beta=beta)
+        loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians, args.z_size, beta = beta)
 
         #Optimization step, Backpropagation
         opt.zero_grad()
@@ -47,7 +46,7 @@ def train(epoch, train_loader, model, opt, args):
     return train_loss
 
 
-def evaluate(data_loader, model, args, testing=False):#, epoch=0):
+def evaluate(data_loader, model, args, testing=False):
     
     model.eval()
     loss = 0.
@@ -59,8 +58,8 @@ def evaluate(data_loader, model, args, testing=False):#, epoch=0):
 
         data = data.view(-1, *args.input_size)
         
-        x_mean, z_mu, z_var, ldj, z0, zk = model(data)
-        batch_loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, ldj)
+        x_mean, z_mu, z_var, log_det_jacobians, z0, zk = model(data)
+        batch_loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians,  args.z_size)
         loss += batch_loss.item()
 
     loss /= len(data_loader)
@@ -77,7 +76,7 @@ def evaluate(data_loader, model, args, testing=False):#, epoch=0):
         model.eval()
 
         log_likelihood = calculate_likelihood(test_data, model, args, S=5000, MB=1000) #calculate the true marginal likelihood by IS 
-                                                                                       #using 5000 samples from the inference network
+                                                                                       #using S samples from the inference network
         print('====> Test set loss: {:.4f}'.format(loss))
         print('====> Test set log-likelihood: {:.4f}'.format(log_likelihood))
         return log_likelihood
@@ -85,4 +84,3 @@ def evaluate(data_loader, model, args, testing=False):#, epoch=0):
         
         print('====> Validation set loss: {:.4f}'.format(loss))
         return loss
-        
