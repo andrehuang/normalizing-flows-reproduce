@@ -1,4 +1,3 @@
-from __future__ import print_function
 import numpy as np
 from scipy.special import logsumexp
 from optimization.loss import binary_loss_function
@@ -36,7 +35,7 @@ def calculate_likelihood(X, model, args, S=5000, MB=500):
 
             x_mean, z_mu, z_var, ldj, z0, zk = model(x)
 
-            a_tmp, _ , _ = binary_loss_function(x_mean, x, z_mu, z_var, z0, zk, ldj, summ=False)
+            a_tmp, _ , _ = binary_loss_function(x_mean, x, z_mu, z_var, z0, zk, ldj, args.z_size, summ=False)
 
             a.append(-a_tmp.cpu().data.numpy())
 
