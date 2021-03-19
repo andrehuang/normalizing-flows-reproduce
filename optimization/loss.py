@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from util.distributions import normal_dist
+from util.distributions import log_normal_dist
 
 def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z_size, beta=1, summ = True):
     """
@@ -23,8 +23,8 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
         log_p_xz = reconstruction_loss(x_recon, x)  #log_p(x|z_k)
         
         
-        log_p_zk = normal_dist(z_k, mean=0, logvar=torch.zeros(batch_size, z_size), dim=1) # ln p(z_k) = N(0,I) 
-        log_q_z0 = normal_dist(z_0, mean=z_mu, logvar=z_var.log(), dim=1)
+        log_p_zk = log_normal_dist(z_k, mean=0, logvar=torch.zeros(batch_size, z_size), dim=1) # ln p(z_k) = N(0,I) 
+        log_q_z0 = log_normal_dist(z_0, mean=z_mu, logvar=z_var.log(), dim=1)
   
         kl = torch.sum(log_q_z0 - beta * log_p_zk) - torch.sum(log_det_jacobians) #sum over batches
         #Equation (20)
@@ -44,8 +44,8 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
         log_p_xz = reconstruction_loss(x_recon.view(batch_size, -1), x.view(batch_size, -1))  #log_p(x|z_k)
         log_p_xz = torch.sum(log_p_xz, dim=1)
         
-        log_p_zk = normal_dist(z_k, mean=0, logvar=torch.zeros(batch_size, z_size), dim=1)
-        log_q_z0 = normal_dist(z_0, mean=z_mu, logvar=z_var.log(), dim=1)
+        log_p_zk = log_normal_dist(z_k, mean=0, logvar=torch.zeros(batch_size, z_size), dim=1)
+        log_q_z0 = log_normal_dist(z_0, mean=z_mu, logvar=z_var.log(), dim=1)
         #Equation (20)
         elbo = log_q_z0 - beta * (log_p_zk - log_p_xz) - log_det_jacobians  
 
