@@ -33,7 +33,7 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
             log_p_zk = log_normal_dist(z_k, mean=0, logvar=logvar, dim=1) # ln p(z_k) = N(0,I)
         else:
             log_p_zk = log_vamp_zk
-        
+
         log_q_z0 = log_normal_dist(z_0, mean=z_mu, logvar=z_var.log(), dim=1)
   
         kl = torch.sum(log_q_z0 - beta * log_p_zk) - torch.sum(log_det_jacobians) #sum over batches
