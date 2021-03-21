@@ -24,7 +24,7 @@ def train(epoch, train_loader, model, opt, args):
         #Pass throught the VAE + flows 
         x_mean, z_mu, z_var, log_det_jacobians, z0, zk = model(data)
         #Compute the loss 
-        loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians, args.z_size, beta = beta)
+        loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians, args.z_size, args.cuda, beta = beta)
 
         #Optimization step, Backpropagation
         opt.zero_grad()
@@ -59,7 +59,7 @@ def evaluate(data_loader, model, args, testing=False):
         data = data.view(-1, *args.input_size)
         
         x_mean, z_mu, z_var, log_det_jacobians, z0, zk = model(data)
-        batch_loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians,  args.z_size)
+        batch_loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians,  args.z_size, args.cuda)
         loss += batch_loss.item()
 
     loss /= len(data_loader)
