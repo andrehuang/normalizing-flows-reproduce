@@ -85,7 +85,7 @@ def evaluate(data_loader, model, args, testing=False):
 
         model.eval()
 
-        log_likelihood = calculate_likelihood(test_data, model, args, S=5000, MB=1000) #calculate the true marginal likelihood by IS 
+        log_likelihood = calculate_likelihood(test_data, model, args, S=200, MB=1000) #calculate the true marginal likelihood by IS 
                                                                                        #using S samples from the inference network
         print('====> Test set loss: {:.4f}'.format(loss))
         print('====> Test set log-likelihood: {:.4f}'.format(log_likelihood))
