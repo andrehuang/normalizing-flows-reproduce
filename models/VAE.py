@@ -22,6 +22,7 @@ class VAE(nn.Module):
         self.input_dim = args.input_dim # for defining p_mu function
         self.encoder_dim = args.encoder_dim # encoder feature_dim
         self.decoder_dim = args.decoder_dim # decoder feature_dim
+        self.is_cuda = args.cuda
 
         self.mu = nn.Linear(self.encoder_dim, self.z_size)
         self.var = nn.Sequential(
@@ -50,7 +51,10 @@ class VAE(nn.Module):
         
         self.num_pseudo = num_pseudo
         
-        self.dummy_inputs = torch.eye(self.num_pseudo)
+        if self.is_cuda:
+            self.dummy_inputs = torch.eye(self.num_pseudo).cuda()
+        else:
+            self.dummy_inputs = torch.eye(self.num_pseudo)
         self.dummy_inputs.requires_grad = False
         
         self.pseudo_layer = nn.Linear(self.num_pseudo, 784, bias=False)

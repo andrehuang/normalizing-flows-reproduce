@@ -66,7 +66,7 @@ parser.add_argument('--encoder_dim', type=int, default=256, metavar='ESIZE',
 parser.add_argument('--decoder_dim', type=int, default=256, metavar='DSIZE',
                     help='output feature dim of decoder') 
 
-parser.add_argument('-vp', '--vampprior', type=bool, default='False', metavar='VAMPPRIOR',
+parser.add_argument('-vp', '--vampprior', type=bool, default=False, metavar='VAMPPRIOR',
                     help='choose whether to use VampPrior')
 
 # gpu/cpu
