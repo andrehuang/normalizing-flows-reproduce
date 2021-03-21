@@ -66,6 +66,9 @@ parser.add_argument('--encoder_dim', type=int, default=256, metavar='ESIZE',
 parser.add_argument('--decoder_dim', type=int, default=256, metavar='DSIZE',
                     help='output feature dim of decoder') 
 
+parser.add_argument('-vp', '--vampprior', type=bool, default='False', metavar='VAMPPRIOR',
+                    help='choose whether to use VampPrior')
+
 # gpu/cpu
 parser.add_argument('--gpu_num', type=int, default=0, metavar='GPU', help='choose GPU to run on.')
 
@@ -93,6 +96,9 @@ def run(args):
     encoder = MLP_encoder(args)
     decoder = MLP_decoder(args)
     model = VAE.PlanarVAE(encoder, decoder, args)
+    
+    if args.vampprior:
+        model.init_pseudoinputs()
     
     if args.cuda:
         print("Model on GPU")

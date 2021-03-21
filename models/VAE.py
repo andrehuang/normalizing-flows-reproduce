@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import models.flows as flows
+from util.distributions import log_normal_dist
+import math
 
 
 class VAE(nn.Module):
@@ -38,7 +40,50 @@ class VAE(nn.Module):
 
 
         self.log_det_j = 0.
-
+            
+    
+    def init_pseudoinputs(self, num_pseudo=500):
+        """
+        Adds and initialises additional layer for pseudoinput generation
+        num_pseudo: number of pseudoinputs, default 500 from original paper
+        """
+        
+        self.num_pseudo = num_pseudo
+        
+        self.dummy_inputs = torch.eye(self.num_pseudo)
+        self.dummy_inputs.requires_grad = False
+        
+        self.pseudo_layer = nn.Linear(self.num_pseudo, 784, bias=False)
+        self.pseudo_layer.weight.data.normal_(-0.05, 0.01) #default in experiment parser
+        
+        self.pseudo_nonlin = nn.Hardtanh(min_val=0.0, max_val=1.0)
+        
+        
+        
+    def log_vamp_zk(self, zk):
+        """
+        Calculates log p(z_k) under VampPrior
+        """
+        
+        # generate pseudoinputs from diagonal tensor
+        pseudo_x = self.pseudo_nonlin(self.pseudo_layer(self.dummy_inputs))
+        
+        # calculate VampPrior
+        vamp_mu, vamp_logvar, _, _, _ = self.encode(pseudo_x)
+        
+        # expand
+        zk_expanded = zk.unsqueeze(1)
+        mus = vamp_mu.unsqueeze(0)
+        logvars = vamp_logvar.unsqueeze(0)
+        
+        # calculate log p(z_k)
+        log_per_pseudo = log_normal_dist(zk_expanded, mus, logvars, dim=2) - math.log(self.num_pseudo)
+        log_max, _ = torch.max(log_per_pseudo, 1)
+        log_total = log_max + torch.log(torch.sum(torch.exp(log_per_pseudo - log_max.unsqueeze(1)), 1))
+        
+        return log_total
+    
+    
     def reparameterize(self, mu, var):
         """
         Samples z from a multivariate Gaussian with diagonal covariance matrix using the
@@ -54,7 +99,7 @@ class VAE(nn.Module):
         h = h.view(h.size(0), -1)
         mu = self.mu(h)
         var = self.var(h)
-        return mean, var
+        return mu, var
 
     def decode(self, z):
         z = z.view(z.size(0), self.z_size, 1, 1)
@@ -102,6 +147,8 @@ class PlanarVAE(VAE):
         for k in range(self.num_flows):
             flow_k = flow()
             self.add_module('flow_' + str(k), flow_k)
+
+        
 
     def encode(self, x):
         """

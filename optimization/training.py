@@ -23,8 +23,13 @@ def train(epoch, train_loader, model, opt, args):
 
         #Pass throught the VAE + flows 
         x_mean, z_mu, z_var, log_det_jacobians, z0, zk = model(data)
+        
+        #Compute VampPrior if used
+        log_vamp_zk = model.log_vamp_zk(zk) if args.vampprior else None
+        
         #Compute the loss 
-        loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians, args.z_size, beta = beta)
+        loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians,
+                                             args.z_size, beta = beta, log_vamp_zk = log_vamp_zk)
 
         #Optimization step, Backpropagation
         opt.zero_grad()
@@ -59,7 +64,12 @@ def evaluate(data_loader, model, args, testing=False):
         data = data.view(-1, *args.input_size)
         
         x_mean, z_mu, z_var, log_det_jacobians, z0, zk = model(data)
-        batch_loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians,  args.z_size)
+        
+        #Compute VampPrior if used
+        log_vamp_zk = model.log_vamp_zk(zk) if args.vampprior else None
+        
+        batch_loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians, 
+                                                   args.z_size, log_vamp_zk = log_vamp_zk)
         loss += batch_loss.item()
 
     loss /= len(data_loader)
