@@ -6,8 +6,6 @@ import torch.optim as optim
 import numpy as np
 import math
 import random
-import pandas as pd
-import matplotlib.pyplot as plt
 
 import models.VAE as VAE
 from models.model import MLP_encoder, MLP_decoder
