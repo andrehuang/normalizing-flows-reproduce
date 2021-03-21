@@ -38,9 +38,9 @@ class MLP(nn.Module):
         return x
 
 def MLP_encoder(args):
-    model = MLP(input_dim=784, features=400, depth=2, num_outputs=args.encoder_dim)
+    model = MLP(input_dim=784, features=400, depth=1, num_outputs=args.encoder_dim)
     return model
 
 def MLP_decoder(args):
-    model = MLP(input_dim=args.z_size, features=400, depth=2, num_outputs=args.decoder_dim)
+    model = MLP(input_dim=args.z_size, features=400, depth=1, num_outputs=args.decoder_dim)
     return model
