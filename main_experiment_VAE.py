@@ -6,6 +6,8 @@ import torch.optim as optim
 import numpy as np
 import math
 import random
+import pandas as pd
+import matplotlib.pyplot as plt
 
 import models.VAE as VAE
 from models.model import MLP_encoder, MLP_decoder
@@ -46,10 +48,10 @@ parser.add_argument('-es', '--early_stopping_epochs', type=int, default=100, met
 
 parser.add_argument('-bs', '--batch_size', type=int, default=100, metavar='BATCH_SIZE',
                     help='input batch size for training (default: 100)')
-parser.add_argument('-lr', '--learning_rate', type=float, default=0.0005, metavar='LEARNING_RATE',
+parser.add_argument('-lr', '--learning_rate', type=float, default=0.00001, metavar='LEARNING_RATE',
                     help='learning rate')
 
-parser.add_argument('-w', '--warmup', type=int, default=100, metavar='N',
+parser.add_argument('-w', '--warmup', type=int, default=20, metavar='N',
                     help='number of epochs for warm-up. Set to 0 to turn warmup off.')
 parser.add_argument('--max_beta', type=float, default=1., metavar='MB',
                     help='max beta for warm-up')
@@ -59,11 +61,11 @@ parser.add_argument('-f', '--flow', type=str, default='planar', choices=['planar
 parser.add_argument('-nf', '--num_flows', type=int, default=10,
                     metavar='NUM_FLOWS', help='Number of flow layers, ignored in absence of flows')
 
-parser.add_argument('--z_size', type=int, default=64, metavar='ZSIZE',
+parser.add_argument('--z_size', type=int, default=40, metavar='ZSIZE',
                     help='how many stochastic hidden units')
-parser.add_argument('--encoder_dim', type=int, default=256, metavar='ESIZE',
+parser.add_argument('--encoder_dim', type=int, default=400, metavar='ESIZE',
                     help='output feature dim of encoder')
-parser.add_argument('--decoder_dim', type=int, default=256, metavar='DSIZE',
+parser.add_argument('--decoder_dim', type=int, default=400, metavar='DSIZE',
                     help='output feature dim of decoder') 
 
 parser.add_argument('-vp', '--vampprior', type=bool, default=False, metavar='VAMPPRIOR',
@@ -106,7 +108,7 @@ def run(args):
         
     print(model)
 
-    optimizer = optim.Adamax(model.parameters(), lr=args.learning_rate, eps=1.e-7)
+    optimizer = optim.RMSprop(model.parameters(), lr=args.learning_rate, momentum=0.9)
 
     #### Training
     train_loss = []
