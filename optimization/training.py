@@ -29,7 +29,7 @@ def train(epoch, train_loader, model, opt, args):
         
         #Compute the loss 
         loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians,
-                                             args.z_size, beta = beta, log_vamp_zk = log_vamp_zk)
+                                             args.z_size, args.cuda, beta = beta, log_vamp_zk = log_vamp_zk)
 
         #Optimization step, Backpropagation
         opt.zero_grad()
@@ -69,7 +69,7 @@ def evaluate(data_loader, model, args, testing=False):
         log_vamp_zk = model.log_vamp_zk(zk) if args.vampprior else None
         
         batch_loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians, 
-                                                   args.z_size, log_vamp_zk = log_vamp_zk)
+                                                   args.z_size, args.cuda, log_vamp_zk = log_vamp_zk)
         loss += batch_loss.item()
 
     loss /= len(data_loader)

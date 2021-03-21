@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from util.distributions import log_normal_dist
 
-def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z_size, beta=1, summ = True, log_vamp_zk = None):
+def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z_size, cuda, beta=1, summ = True, log_vamp_zk = None):
     """
     x_recon: shape: (batch_size, num_channels, pixel_width, pixel_height), i.e. for MNIST [batch_size, 1, 28, 28]
     x: shape (batchsize, num_channels, pixel_width, pixel_height), pixel values rescaled between [0, 1].
@@ -23,9 +23,14 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
         reconstruction_loss = nn.BCELoss(reduction='sum')
         log_p_xz = reconstruction_loss(x_recon, x)  #log_p(x|z_k)
         
+        logvar=torch.zeros(batch_size, z_size) 
+        
+        if cuda == True:                      
+            logvar=logvar.cuda()
+            
         # calculate log_p(zk) under standard Gaussian unless log_p(zk) under VampPrior given
         if log_vamp_zk == None:
-            log_p_zk = log_normal_dist(z_k, mean=0, logvar=torch.zeros(batch_size, z_size), dim=1) # ln p(z_k) = N(0,I)
+            log_p_zk = log_normal_dist(z_k, mean=0, logvar=logvar, dim=1) # ln p(z_k) = N(0,I)
         else:
             log_p_zk = log_vamp_zk
         
@@ -49,9 +54,13 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
         log_p_xz = reconstruction_loss(x_recon.view(batch_size, -1), x.view(batch_size, -1))  #log_p(x|z_k)
         log_p_xz = torch.sum(log_p_xz, dim=1)
         
+        logvar=torch.zeros(batch_size, z_size)  
+        if cuda == True:                       
+            logvar=logvar.cuda()
+            
         # calculate log_p(zk) under standard Gaussian unless log_p(zk) under VampPrior given
         if log_vamp_zk == None:
-            log_p_zk = log_normal_dist(z_k, mean=0, logvar=torch.zeros(batch_size, z_size), dim=1)
+            log_p_zk = log_normal_dist(z_k, mean=0, logvar=logvar, dim=1)
         else:
             log_p_zk = log_vamp_zk
         
