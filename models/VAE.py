@@ -41,30 +41,29 @@ class VAE(nn.Module):
 
 
         self.log_det_j = 0.
+        self.num_pseudos = args.num_pseudos # for initialising pseudoinputs
             
     
-    def init_pseudoinputs(self, num_pseudo=500):
+    def init_pseudoinputs(self):
         """
         Adds and initialises additional layer for pseudoinput generation
         num_pseudo: number of pseudoinputs, default 500 from original paper
         """
         
-        self.num_pseudo = num_pseudo
-        
         if self.is_cuda:
-            self.dummy_inputs = torch.eye(self.num_pseudo).cuda()
+            self.dummy_inputs = torch.eye(self.num_pseudos).cuda()
         else:
-            self.dummy_inputs = torch.eye(self.num_pseudo)
+            self.dummy_inputs = torch.eye(self.num_pseudos)
         self.dummy_inputs.requires_grad = False
         
-        self.pseudo_layer = nn.Linear(self.num_pseudo, 784, bias=False)
+        self.pseudo_layer = nn.Linear(self.num_pseudos, 784, bias=False)
         self.pseudo_layer.weight.data.normal_(-0.05, 0.01) #default in experiment parser
         
         self.pseudo_nonlin = nn.Hardtanh(min_val=0.0, max_val=1.0)
         
         
         
-    def log_vamp_zk(self, zk):
+    def log_vamp_zk(self, zk, log_det_j):
         """
         Calculates log p(z_k) under VampPrior
         """
@@ -77,11 +76,12 @@ class VAE(nn.Module):
         
         # expand
         zk_expanded = zk.unsqueeze(1)
+        log_det_j_exp = log_det_j.unsqueeze(1)
         mus = vamp_mu.unsqueeze(0)
         logvars = vamp_logvar.unsqueeze(0)
         
         # calculate log p(z_k)
-        log_per_pseudo = log_normal_dist(zk_expanded, mus, logvars, dim=2) - math.log(self.num_pseudo)
+        log_per_pseudo = log_normal_dist(zk_expanded, mus, logvars, dim=2) - log_det_j_exp - math.log(self.num_pseudos)
         log_max, _ = torch.max(log_per_pseudo, 1)
         log_total = log_max + torch.log(torch.sum(torch.exp(log_per_pseudo - log_max.unsqueeze(1)), 1))
         

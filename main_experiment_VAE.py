@@ -68,6 +68,8 @@ parser.add_argument('--decoder_dim', type=int, default=400, metavar='DSIZE',
 
 parser.add_argument('-vp', '--vampprior', type=bool, default=False, metavar='VAMPPRIOR',
                     help='choose whether to use VampPrior')
+parser.add_argument('--num_pseudos', type=int, default=500, metavar='NUM_PSEUDOS',
+                    help='number of pseudoinputs used for VampPrior')
 
 # gpu/cpu
 parser.add_argument('--gpu_num', type=int, default=0, metavar='GPU', help='choose GPU to run on.')
