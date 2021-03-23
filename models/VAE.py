@@ -187,7 +187,11 @@ class PlanarVAE(VAE):
         Log determinant is computed as log_det_j = N E_q_z0[\sum_k log |det dz_k/dz_k-1| ].
         """
 
-        self.log_det_j = torch.zeros([x.shape[0]])
+        if self.is_cuda:
+            self.log_det_j = torch.zeros([x.shape[0]]).cuda()
+        else:
+            self.log_det_j = torch.zeros([x.shape[0]])
+
 
         z_mu, z_var, u, w, b = self.encode(x)
 
