@@ -129,6 +129,12 @@ def run(args):
     val_loss = np.array(val_loss)
     #plot_training_curve(train_loss, val_loss)   
     
+    ## save model and losses
+    
+    torch.save(model.state_dict(), 'model_k' + str(args.num_flows) + '_C' + str(args.num_pseudos))
+    np.savetxt('train_loss_k' + str(args.num_flows) + '_C' + str(args.num_pseudos) +'.csv', train_loss)
+    np.savetxt('val_loss_k' + str(args.num_flows) + '_C' + str(args.num_pseudos) + '.csv', val_loss)
+
     #### Testing
 
     validation_loss = evaluate(val_loader, model, args)
