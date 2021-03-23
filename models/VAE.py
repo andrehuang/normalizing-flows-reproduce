@@ -44,22 +44,28 @@ class VAE(nn.Module):
         self.num_pseudos = args.num_pseudos # for initialising pseudoinputs
             
     
-    def init_pseudoinputs(self):
+    def init_pseudoinputs(self, pseudo_inputs):
         """
         Adds and initialises additional layer for pseudoinput generation
-        num_pseudo: number of pseudoinputs, default 500 from original paper
+        pseudo_inputs: either random training data or None
         """
         
-        if self.is_cuda:
-            self.dummy_inputs = torch.eye(self.num_pseudos).cuda()
-        else:
-            self.dummy_inputs = torch.eye(self.num_pseudos)
-        self.dummy_inputs.requires_grad = False
+        self.pseudo_inputs = pseudo_inputs
+        self.pseudo_inputs.requires_grad = False
         
-        self.pseudo_layer = nn.Linear(self.num_pseudos, 784, bias=False)
-        self.pseudo_layer.weight.data.normal_(-0.05, 0.01) #default in experiment parser
-        
-        self.pseudo_nonlin = nn.Hardtanh(min_val=0.0, max_val=1.0)
+        if pseudo_inputs == None:
+            # initialise dummy inputs
+            if self.is_cuda:
+                self.dummy_inputs = torch.eye(self.num_pseudos).cuda()
+            else:
+                self.dummy_inputs = torch.eye(self.num_pseudos)
+            self.dummy_inputs.requires_grad = False
+            # initialise layers for learning pseudoinputs
+            self.pseudo_layer = nn.Linear(self.num_pseudos, 784, bias=False)
+            self.pseudo_layer.weight.data.normal_(-0.05, 0.01) #default in experiment parser
+            self.pseudo_nonlin = nn.Hardtanh(min_val=0.0, max_val=1.0)
+        elif self.is_cuda:
+            self.pseudo_inputs = self.pseudo_inputs.cuda()
         
         
         
@@ -69,7 +75,10 @@ class VAE(nn.Module):
         """
         
         # generate pseudoinputs from diagonal tensor
-        pseudo_x = self.pseudo_nonlin(self.pseudo_layer(self.dummy_inputs))
+        if self.pseudo_inputs == None:
+            pseudo_x = self.pseudo_nonlin(self.pseudo_layer(self.dummy_inputs))
+        else:
+            pseudo_x = self.pseudo_inputs
         
         # calculate VampPrior
         vamp_mu, vamp_logvar, _, _, _ = self.encode(pseudo_x)
