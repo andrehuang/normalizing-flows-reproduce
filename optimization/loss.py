@@ -29,7 +29,7 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
             logvar=logvar.cuda()
             
         # calculate log_p(zk) under standard Gaussian unless log_p(zk) under VampPrior given
-        if log_vamp_zk == None:
+        if log_vamp_zk is None:
             log_p_zk = log_normal_dist(z_k, mean=0, logvar=logvar, dim=1) # ln p(z_k) = N(0,I)
         else:
             log_p_zk = log_vamp_zk
@@ -67,7 +67,7 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
             logvar=logvar.cuda()
             
         # calculate log_p(zk) under standard Gaussian unless log_p(zk) under VampPrior given
-        if log_vamp_zk == None:
+        if log_vamp_zk is None:
             log_p_zk = log_normal_dist(z_k, mean=0, logvar=logvar, dim=1)
         else:
             log_p_zk = log_vamp_zk

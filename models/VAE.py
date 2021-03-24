@@ -53,7 +53,7 @@ class VAE(nn.Module):
         self.pseudo_inputs = pseudo_inputs
         self.pseudo_inputs.requires_grad = False
         
-        if pseudo_inputs == None:
+        if pseudo_inputs is None:
             # initialise dummy inputs
             if self.is_cuda:
                 self.dummy_inputs = torch.eye(self.num_pseudos).cuda()
@@ -75,7 +75,7 @@ class VAE(nn.Module):
         """
         
         # generate pseudoinputs from diagonal tensor
-        if self.pseudo_inputs == None:
+        if self.pseudo_inputs is None:
             pseudo_x = self.pseudo_nonlin(self.pseudo_layer(self.dummy_inputs))
         else:
             pseudo_x = self.pseudo_inputs
