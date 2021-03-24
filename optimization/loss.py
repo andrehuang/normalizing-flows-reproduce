@@ -21,7 +21,7 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
         
         #Reconstruction loss: Binary cross entropy
         reconstruction_loss = nn.BCELoss(reduction='sum')
-        log_p_xz = reconstruction_loss(x_recon, x)  #log_p(x|z_k)
+        log_p_xz = reconstruction_loss(x_recon, x)  #-log_p(x|z_k)
         
         logvar=torch.zeros(batch_size, z_size) 
         
@@ -59,7 +59,7 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
             log_det_jacobians = log_det_jacobians.view(log_det_jacobians.size(0), -1).sum(-1)
 
         reconstruction_loss = nn.BCELoss(reduction='none')
-        log_p_xz = reconstruction_loss(x_recon.view(batch_size, -1), x.view(batch_size, -1))  #log_p(x|z_k)
+        log_p_xz = reconstruction_loss(x_recon.view(batch_size, -1), x.view(batch_size, -1))  #-log_p(x|z_k)
         log_p_xz = torch.sum(log_p_xz, dim=1)
         
         logvar=torch.zeros(batch_size, z_size)  
@@ -74,6 +74,7 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
         
         log_q_z0 = log_normal_dist(z_0, mean=z_mu, logvar=z_var.log(), dim=1)
         #Equation (20)
-        elbo = log_q_z0 - beta * (log_p_zk - log_p_xz) - log_det_jacobians  
+        elbo = log_q_z0 - log_p_zk - log_det_jacobians + log_p_xz 
 
-        return elbo, log_p_xz, (log_q_z0 - beta * log_p_zk - log_det_jacobians)
+
+        return elbo, log_p_xz, (log_q_z0 - log_p_zk - log_det_jacobians)
