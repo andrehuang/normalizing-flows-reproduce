@@ -61,6 +61,11 @@ class PlanarFlow(nn.Module):  ##PlanarVI without VAEs
         # Flow parameters
         flow = Planar
         self.num_flows = K
+
+        self.w = nn.Parameter(torch.randn(K, 1, 2).normal_(0, 0.1))
+        self.b = nn.Parameter(torch.randn(K, 1).normal_(0, 0.1))
+        self.u = nn.Parameter(torch.randn(K, 1, 2).normal_(0, 0.1))
+
            
         # Normalizing flow layers
         for k in range(self.num_flows):
@@ -79,7 +84,7 @@ class PlanarFlow(nn.Module):  ##PlanarVI without VAEs
         # Normalizing flows            
         for k in range(self.num_flows):           
             flow_k = getattr(self, 'flow_' + str(k))
-            z, log_det_jacobian = flow_k(z)                                                                        
+            z, log_det_jacobian = flow_k(z, u[k], w[k], b[k])                                                                        
             self.log_det_j += log_det_jacobian
 
         return z, self.log_det_j 
