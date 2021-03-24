@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from util.distributions import log_normal_dist
 
-def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z_size, cuda, beta=1, summ = True, log_vamp_zk = None):
+def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z_size, cuda, beta=1, summ = True, log_vamp_zk = None, anneal="std"):
     """
     x_recon: shape: (batch_size, num_channels, pixel_width, pixel_height), i.e. for MNIST [batch_size, 1, 28, 28]
     x: shape (batchsize, num_channels, pixel_width, pixel_height), pixel values rescaled between [0, 1].
@@ -35,16 +35,24 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
             log_p_zk = log_vamp_zk
 
         log_q_z0 = log_normal_dist(z_0, mean=z_mu, logvar=z_var.log(), dim=1)
-  
-        kl = torch.sum(log_q_z0 - beta * log_p_zk) - torch.sum(log_det_jacobians) #sum over batches
-        #Equation (20)
-        elbo = beta * log_p_xz + kl
-    
+
+        if anneal == "std":
+            #Equation (20)
+            kl = torch.sum(log_q_z0 - beta * log_p_zk) - torch.sum(log_det_jacobians) #sum over batches
+            elbo = beta * log_p_xz + kl
+        elif anneal == "off":
+            kl = torch.sum(log_q_z0 - log_p_zk) - torch.sum(log_det_jacobians) #sum over batches
+            elbo = log_p_xz + kl
+        elif anneal == "kl":
+            kl = torch.sum(log_q_z0 - log_p_zk) - torch.sum(log_det_jacobians) #sum over batches
+            elbo = log_p_xz + beta * kl
+
+
         elbo = elbo / batch_size
         log_p_xz = log_p_xz / batch_size
         kl = kl / batch_size
-    
-        return elbo, log_p_xz, kl 
+        
+        return elbo, log_p_xz, kl
     
     else:              ## Computes the binary loss function without summing over batch dimension (used during testing) 
         if len(log_det_jacobians.size()) > 1:

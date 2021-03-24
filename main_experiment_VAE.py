@@ -51,6 +51,7 @@ parser.add_argument('-lr', '--learning_rate', type=float, default=0.00001, metav
 
 parser.add_argument('-w', '--warmup', type=int, default=20, metavar='N',
                     help='number of epochs for warm-up. Set to 0 to turn warmup off.')
+parset.add_argument('-a', '--anneal', type=str, default="std", choices= ["std", "off", "kl"], help="beta annealing scheme")
 parser.add_argument('--max_beta', type=float, default=1., metavar='MB',
                     help='max beta for warm-up')
 parser.add_argument('--min_beta', type=float, default=0.0, metavar='MB',

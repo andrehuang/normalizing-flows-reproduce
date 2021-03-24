@@ -29,7 +29,7 @@ def train(epoch, train_loader, model, opt, args):
         
         #Compute the loss 
         loss, rec, kl = binary_loss_function(x_mean, data, z_mu, z_var, z0, zk, log_det_jacobians,
-                                             args.z_size, args.cuda, beta = beta, log_vamp_zk = log_vamp_zk)
+                                             args.z_size, args.cuda, beta = beta, log_vamp_zk = log_vamp_zk, anneal=args.anneal)
 
         #Optimization step, Backpropagation
         opt.zero_grad()
