@@ -71,6 +71,8 @@ parser.add_argument('-vp', '--vampprior', type=bool, default=False, metavar='VAM
                     help='choose whether to use VampPrior')
 parser.add_argument('--num_pseudos', type=int, default=500, metavar='NUM_PSEUDOS',
                     help='number of pseudoinputs used for VampPrior')
+parser.add_argument('--data_as_pseudo', type=bool, default=True, metavar='data_as_pseudo',
+                    help='use random training data as pseudoinputs')
 
 # gpu/cpu
 parser.add_argument('--gpu_num', type=int, default=0, metavar='GPU', help='choose GPU to run on.')
@@ -101,7 +103,9 @@ def run(args):
     model = VAE.PlanarVAE(encoder, decoder, args)
     
     if args.vampprior:
-        model.init_pseudoinputs()
+        load = torch.utils.data.DataLoader(train_loader.dataset, batch_size=args.num_pseudos, shuffle=True)
+        pseudo_inputs = next(iter(load))[0] if args.data_as_pseudo else None
+        model.init_pseudoinputs(pseudo_inputs)
     
     if args.cuda:
         print("Model on GPU")
@@ -129,6 +133,7 @@ def run(args):
     train_loss = np.hstack(train_loss)
     val_loss = np.array(val_loss)
     #plot_training_curve(train_loss, val_loss)   
+    
     
     #### Testing
 
