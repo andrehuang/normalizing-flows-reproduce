@@ -208,3 +208,85 @@ class PlanarVAE(VAE):
         x_mean = self.decode(z[-1])
 
         return x_mean, z_mu, z_var, self.log_det_j, z[0], z[-1]
+
+class NICEVAE(VAE):
+    """
+    Variational auto-encoder with NICE flows in the encoder.
+    """
+
+    def __init__(self, encoder, decoder, args):
+        super(NICEVAE, self).__init__(encoder, decoder, args)
+
+        # Initialize log-det-jacobian to zero
+        self.log_det_j = 0.
+
+        # Flow parameters
+        self.num_flows = args.num_flows
+
+        
+
+        # Amortized flow parameters
+        self.amor_u = nn.Linear(self.encoder_dim, self.num_flows * self.z_size)
+        self.amor_w = nn.Linear(self.encoder_dim, self.num_flows * self.z_size)
+        self.amor_b = nn.Linear(self.encoder_dim, self.num_flows)
+
+        # NICE coupling layers
+        for k in range(self.num_flows):
+            flow_k = flows.Coupling(in_out_dim=self.z_size, 
+                     mid_dim=64, 
+                     hidden=2,
+                     mask_config=0)
+            scale_k = flows.Scaling(self.z_size)
+            self.add_module('flow_' + str(k), flow_k)
+            self.add_module('scale_' + str(k), scale_k)
+            
+
+        
+
+    def encode(self, x):
+        """
+        Encoder that ouputs parameters for base distribution of z and flow parameters.
+        """
+
+        batch_size = x.size(0)
+
+        h = self.encoder(x)
+        h = h.view(h.size(0), -1)
+        mu = self.mu(h)
+        var = self.var(h)
+
+        return mu, var
+
+    def forward(self, x):
+        """
+        Forward pass with planar flows for the transformation z_0 -> z_1 -> ... -> z_k.
+        Log determinant is computed as log_det_j = N E_q_z0[\sum_k log |det dz_k/dz_k-1| ].
+        """
+
+        if self.is_cuda:
+            self.log_det_j = torch.zeros([x.shape[0]]).cuda()
+        else:
+            self.log_det_j = torch.zeros([x.shape[0]])
+
+
+        z_mu, z_var= self.encode(x)
+
+        # z_0 
+        z_0 = self.reparameterize(z_mu, z_var)
+        # Do random permutation to enhance mixing of the components
+        random_perm = torch.randperm(z_0.shape[1])
+        z_0 = z_0[:, random_perm]
+
+        z = [z_0]
+
+        # Normalizing flows
+        for k in range(self.num_flows):
+            flow_k = getattr(self, 'flow_' + str(k))
+            scale_k = getattr(self, 'scale_' + str(k))
+            z_k, log_det_jacobian = scale_k(flow_k(z[k]))
+            z.append(z_k)
+            self.log_det_j += log_det_jacobian
+
+        x_mean = self.decode(z[-1])
+
+        return x_mean, z_mu, z_var, self.log_det_j, z[0], z[-1]
