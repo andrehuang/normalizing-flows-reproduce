@@ -145,9 +145,9 @@ def run(args):
     #### Testing
 
     validation_loss = evaluate(val_loader, model, args)
-    test_loss = evaluate(test_loader, model, args, testing=True)
-    results["ELBO"] = validation_loss
-    results["log_likelihood"] = test_loss
+    test_loss, log_likelihood = evaluate(test_loader, model, args, testing=True)
+    results["ELBO"] = test_loss
+    results["log_likelihood"] = log_likelihood
 
     
     json_dir = args.out_dir + f"{args.flow}flow_k_{args.num_flows}"

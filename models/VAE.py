@@ -226,8 +226,8 @@ class NICEVAE(VAE):
         # NICE additive shift layers
         for k in range(self.num_flows):
             flow_k = flows.Coupling(in_out_dim=self.z_size, 
-                     mid_dim=64, 
-                     hidden=2,
+                     mid_dim=400, 
+                     hidden=1,
                      mask_config=0)
             scale_k = flows.Scaling(self.z_size)
             self.add_module('flow_' + str(k), flow_k)

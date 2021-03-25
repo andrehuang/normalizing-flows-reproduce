@@ -89,7 +89,7 @@ def evaluate(data_loader, model, args, testing=False):
                                                                                        #using S samples from the inference network
         print('====> Test set loss: {:.4f}'.format(loss))
         print('====> Test set log-likelihood: {:.4f}'.format(log_likelihood))
-        return log_likelihood
+        return loss, log_likelihood
     else:
         
         print('====> Validation set loss: {:.4f}'.format(loss))
