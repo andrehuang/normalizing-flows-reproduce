@@ -118,9 +118,9 @@ class NICEFlow(nn.Module):
         Returns:
             transformed tensor in latent space Z.
         """
-        # Add random permutation before coupling as in Normalizing flow paper
-        random_perm = torch.randperm(x.shape[1])
-        x = x[:, random_perm]
+        # # Add random permutation before coupling as in Normalizing flow paper
+        # random_perm = torch.randperm(x.shape[1])
+        # x = x[:, random_perm]
         for i in range(len(self.coupling)):
             x = self.coupling[i](x)
         return self.scaling(x)

@@ -223,14 +223,7 @@ class NICEVAE(VAE):
         # Flow parameters
         self.num_flows = args.num_flows
 
-        
-
-        # Amortized flow parameters
-        self.amor_u = nn.Linear(self.encoder_dim, self.num_flows * self.z_size)
-        self.amor_w = nn.Linear(self.encoder_dim, self.num_flows * self.z_size)
-        self.amor_b = nn.Linear(self.encoder_dim, self.num_flows)
-
-        # NICE coupling layers
+        # NICE additive shift layers
         for k in range(self.num_flows):
             flow_k = flows.Coupling(in_out_dim=self.z_size, 
                      mid_dim=64, 
@@ -239,9 +232,6 @@ class NICEVAE(VAE):
             scale_k = flows.Scaling(self.z_size)
             self.add_module('flow_' + str(k), flow_k)
             self.add_module('scale_' + str(k), scale_k)
-            
-
-        
 
     def encode(self, x):
         """
@@ -273,10 +263,9 @@ class NICEVAE(VAE):
 
         # z_0 
         z_0 = self.reparameterize(z_mu, z_var)
-        # Do random permutation to enhance mixing of the components
-        random_perm = torch.randperm(z_0.shape[1])
-        z_0 = z_0[:, random_perm]
-
+        # # Do random permutation to enhance mixing of the components
+        # random_perm = torch.randperm(z_0.shape[1])
+        # z_0 = z_0[:, random_perm]
         z = [z_0]
 
         # Normalizing flows

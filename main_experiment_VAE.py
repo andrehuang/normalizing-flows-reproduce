@@ -12,6 +12,8 @@ from models.model import MLP_encoder, MLP_decoder
 from optimization.training import train, evaluate
 from util.load_data import load_dataset
 #from util.plotting import plot_training_curve
+import json
+import pathlib
 
 
 parser = argparse.ArgumentParser(description='PyTorch Sylvester Normalizing flows')
@@ -28,7 +30,7 @@ parser.add_argument('--manual_seed', type=int, help='manual seed, if not given r
 parser.add_argument('-li', '--log_interval', type=int, default=10, metavar='LOG_INTERVAL',
                     help='how many batches to wait before logging training status')
 
-parser.add_argument('-od', '--out_dir', type=str, default='snapshots', metavar='OUT_DIR',
+parser.add_argument('-od', '--out_dir', type=str, default='logs/', metavar='OUT_DIR',
                     help='output directory for model snapshots etc.')
 
 fp = parser.add_mutually_exclusive_group(required=False)
@@ -40,7 +42,7 @@ parser.set_defaults(testing=True)
 
 # optimization settings
 parser.add_argument('-e', '--epochs', type=int, default=1000, metavar='EPOCHS',
-                    help='number of epochs to train (default: 2000)')
+                    help='number of epochs to train (default: 1000)')
 parser.add_argument('-es', '--early_stopping_epochs', type=int, default=100, metavar='EARLY_STOPPING',
                     help='number of early stopping epochs')
 
@@ -128,23 +130,36 @@ def run(args):
     for epoch in range(1, args.epochs + 1):
 
         tr_loss = train(epoch, train_loader, model, optimizer, args)
-        train_loss.append(tr_loss)
+        train_loss.append(tr_loss.mean())
 
         v_loss = evaluate(val_loader, model, args)
         val_loss.append(v_loss)
 
 
     train_loss = np.hstack(train_loss)
-    val_loss = np.array(val_loss)
+    val_loss = np.hstack(val_loss)
     #plot_training_curve(train_loss, val_loss)   
+    results = {"train_loss": train_loss.tolist(), "val_loss": val_loss.tolist()}
     
     
     #### Testing
 
     validation_loss = evaluate(val_loader, model, args)
     test_loss = evaluate(test_loader, model, args, testing=True)
+    results["ELBO"] = validation_loss
+    results["log_likelihood"] = test_loss
 
+    
+    json_dir = args.out_dir + f"{args.flow}flow_k_{args.num_flows}"
+    print("Saving data at: " + json_dir)
+    output_folder = pathlib.Path(json_dir)
+    output_folder.mkdir(parents=True, exist_ok=True)
+    results_json = json.dumps(results, indent=4, sort_keys=True)
+    (output_folder / "results.json").write_text(results_json)
 
+# How to load:
+# with open(json_dir) as json_file:
+#   data = json.load(json_file)
   
 if __name__ == "__main__":
 
