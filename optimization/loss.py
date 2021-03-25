@@ -17,25 +17,25 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
     the function returns: Free Energy Bound (ELBO), reconstruction loss, kl
     """
     batch_size = x.size(0) 
+    
+    logvar=torch.zeros(batch_size, z_size)    
+    if cuda == True:                      
+        logvar=logvar.cuda()
+        
+    # calculate log_p(zk) under standard Gaussian unless log_p(zk) under VampPrior given
+    if log_vamp_zk is None:
+        log_p_zk = log_normal_dist(z_k, mean=0, logvar=logvar, dim=1) # ln p(z_k) = N(0,I)
+    else:
+        log_p_zk = log_vamp_zk
+                 
+    log_q_z0 = log_normal_dist(z_0, mean=z_mu, logvar=z_var.log(), dim=1)
+    
     if (summ == True):  ## Computes the binary loss function with summing over batch dimension 
         
         #Reconstruction loss: Binary cross entropy
         reconstruction_loss = nn.BCELoss(reduction='sum')
         log_p_xz = reconstruction_loss(x_recon, x)  #-log_p(x|z_k)
         
-        logvar=torch.zeros(batch_size, z_size) 
-        
-        if cuda == True:                      
-            logvar=logvar.cuda()
-            
-        # calculate log_p(zk) under standard Gaussian unless log_p(zk) under VampPrior given
-        if log_vamp_zk is None:
-            log_p_zk = log_normal_dist(z_k, mean=0, logvar=logvar, dim=1) # ln p(z_k) = N(0,I)
-        else:
-            log_p_zk = log_vamp_zk
-
-        log_q_z0 = log_normal_dist(z_0, mean=z_mu, logvar=z_var.log(), dim=1)
-
         if anneal == "std":
             #Equation (20)
             kl = torch.sum(log_q_z0 - beta * log_p_zk) - torch.sum(log_det_jacobians) #sum over batches
@@ -46,7 +46,6 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
         elif anneal == "kl":
             kl = torch.sum(log_q_z0 - log_p_zk) - torch.sum(log_det_jacobians) #sum over batches
             elbo = log_p_xz + beta * kl
-
 
         elbo = elbo / batch_size
         log_p_xz = log_p_xz / batch_size
@@ -62,19 +61,7 @@ def binary_loss_function(x_recon, x, z_mu, z_var, z_0, z_k, log_det_jacobians, z
         log_p_xz = reconstruction_loss(x_recon.view(batch_size, -1), x.view(batch_size, -1))  #-log_p(x|z_k)
         log_p_xz = torch.sum(log_p_xz, dim=1)
         
-        logvar=torch.zeros(batch_size, z_size)  
-        if cuda == True:                       
-            logvar=logvar.cuda()
-            
-        # calculate log_p(zk) under standard Gaussian unless log_p(zk) under VampPrior given
-        if log_vamp_zk is None:
-            log_p_zk = log_normal_dist(z_k, mean=0, logvar=logvar, dim=1)
-        else:
-            log_p_zk = log_vamp_zk
-        
-        log_q_z0 = log_normal_dist(z_0, mean=z_mu, logvar=z_var.log(), dim=1)
         #Equation (20)
         elbo = log_q_z0 - log_p_zk - log_det_jacobians + log_p_xz 
-
 
         return elbo, log_p_xz, (log_q_z0 - log_p_zk - log_det_jacobians)
