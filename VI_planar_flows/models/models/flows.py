@@ -4,9 +4,9 @@ import torch.nn.functional as F
 
 class Planar(nn.Module):   #PLanar Transfromation
 
-    def __init__(self):
+    def __init__(self, z_size):
 
-        super(Planar, self, z_size).__init__()
+        super(Planar, self).__init__()
         self.h = nn.Tanh()
         self.w = nn.Parameter(torch.randn(1, z_size).normal_(0, 0.1))
         self.b = nn.Parameter(torch.randn(1).normal_(0, 0.1))
