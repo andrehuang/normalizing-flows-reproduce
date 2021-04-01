@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from models.flows import Planar
+from models.flows import Planar, FirstLayer
 from models.flows import Coupling, Scaling
 
 class PlanarFlow(nn.Module):  ##PlanarVI without VAEs
@@ -15,14 +15,15 @@ class PlanarFlow(nn.Module):  ##PlanarVI without VAEs
         self.log_det_j = 0.
         # Flow parameters
         flow = Planar
+        q_0 = FirstLayer
         self.num_flows = K
-
-        self.w = nn.Parameter(torch.randn(K, 1, 2).normal_(0, 0.1))
-        self.b = nn.Parameter(torch.randn(K, 1).normal_(0, 0.1))
-        self.u = nn.Parameter(torch.randn(K, 1, 2).normal_(0, 0.1))
-           
+        
+        #First layer 
+        flow_0 = q_0(z_size)
+        self.add_module('flow_' + str(0), flow_0)
+        
         # Normalizing flow layers
-        for k in range(self.num_flows):
+        for k in range(1,self.num_flows+1):
             flow_k = flow()
             self.add_module('flow_' + str(k), flow_k)                                                              
 
@@ -36,9 +37,9 @@ class PlanarFlow(nn.Module):  ##PlanarVI without VAEs
         self.log_det_j = 0.
         
         # Normalizing flows            
-        for k in range(self.num_flows):           
+        for k in range(self.num_flows+1):           
             flow_k = getattr(self, 'flow_' + str(k))
-            z, log_det_jacobian = flow_k(z, u[k], w[k], b[k])                                                                      
+            z, log_det_jacobian = flow_k(z)                                                                      
             self.log_det_j += log_det_jacobian
 
 
