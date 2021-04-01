@@ -6,11 +6,11 @@ class Planar(nn.Module):   #PLanar Transfromation
 
     def __init__(self):
 
-        super(Planar, self).__init__()
+        super(Planar, self, z_size).__init__()
         self.h = nn.Tanh()
-        self.w = nn.Parameter(torch.randn(1, 2).normal_(0, 0.1))
+        self.w = nn.Parameter(torch.randn(1, z_size).normal_(0, 0.1))
         self.b = nn.Parameter(torch.randn(1).normal_(0, 0.1))
-        self.u = nn.Parameter(torch.randn(1, 2).normal_(0, 0.1))
+        self.u = nn.Parameter(torch.randn(1, z_size).normal_(0, 0.1))
 
     def forward(self, z):
         """
@@ -22,11 +22,11 @@ class Planar(nn.Module):   #PLanar Transfromation
         shape b = scalar
         shape z = (batch_size, z_size).
         """
-        # Equation (10)
         prod = torch.mm(z, self.w.T) + self.b
+        # Equation (10)
         f_z = z + self.u * self.h(prod)
         # Equation (11)
-        psi = self.w * (1 - self.h(prod) ** 2)  # w * h'(prod)
+        psi = self.w * (1 - self.h(prod) ** 2)  # psi = w * h'(prod)
         # Equation (12)
         log_det_jacobian = torch.log(torch.abs(1 + torch.mm(psi, self.u.T)))
         
