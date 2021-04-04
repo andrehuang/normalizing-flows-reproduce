@@ -120,14 +120,14 @@ def run(args):
         
     print(model)
 
-    # optimizer = optim.RMSprop(model.parameters(), lr=args.learning_rate, momentum=0.9)
-    # optimizer = optim.AdamW(model.parameters(), lr=args.learning_rate)
+    optimizer = optim.RMSprop(model.parameters(), lr=args.learning_rate, momentum=0.9)
+    # optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
-    optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=5e-4)
-    milestones = [100, 200, 300, 400]
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        optimizer, milestones=milestones, gamma=0.2
-    )
+    # optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=5e-4)
+    # milestones = [100, 200, 300, 400]
+    # scheduler = torch.optim.lr_scheduler.MultiStepLR(
+    #     optimizer, milestones=milestones, gamma=0.2
+    # )
     
 
     #### Training
@@ -144,7 +144,7 @@ def run(args):
         v_loss = evaluate(val_loader, model, args)
         val_loss.append(v_loss)
 
-        scheduler.step()
+        # scheduler.step()
 
 
     train_loss = np.hstack(train_loss)
@@ -161,7 +161,7 @@ def run(args):
     results["log_likelihood"] = log_likelihood
 
     
-    json_dir = args.out_dir + f"{args.flow}flow_k_{args.num_flows}_lr{args.learning_rate}"
+    json_dir = args.out_dir + f"{args.flow}flow_k_{args.num_flows}_RMSProp_lr{args.learning_rate}"
     print("Saving data at: " + json_dir)
     output_folder = pathlib.Path(json_dir)
     output_folder.mkdir(parents=True, exist_ok=True)
