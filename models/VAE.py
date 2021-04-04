@@ -226,7 +226,7 @@ class NICEVAE(VAE):
         # NICE additive shift layers
         for k in range(self.num_flows):
             flow_k = flows.Coupling(in_out_dim=self.z_size, 
-                     mid_dim=400, 
+                     mid_dim=80, # to match the number of parameters in the NF flow
                      hidden=1,
                      mask_config=0)
             scale_k = flows.Scaling(self.z_size)
@@ -263,9 +263,6 @@ class NICEVAE(VAE):
 
         # z_0 
         z_0 = self.reparameterize(z_mu, z_var)
-        # # Do random permutation to enhance mixing of the components
-        # random_perm = torch.randperm(z_0.shape[1])
-        # z_0 = z_0[:, random_perm]
         z = [z_0]
 
         # Normalizing flows

@@ -64,6 +64,8 @@ class Coupling(nn.Module):
             transformed tensor.
         """
         [B, W] = list(x.size())
+        # Random permutation
+        # x = x[:, torch.randperm(W)]
         x = x.reshape((B, W//2, 2))
         if self.mask_config:
             on, off = x[:, :, 0], x[:, :, 1]
