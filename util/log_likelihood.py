@@ -35,7 +35,7 @@ def calculate_likelihood(X, model, args, S=5000, MB=500):
 
             x_mean, z_mu, z_var, ldj, z0, zk = model(x)
             
-            log_vamp_zk = model.log_vamp_zk(zk, ldj) if args.vampprior else None
+            log_vamp_zk = model.log_vamp_zk(zk) if args.vampprior else None
 
             a_tmp, _ , _ = binary_loss_function(x_mean, x, z_mu, z_var, z0, zk, ldj, args.z_size, 
                                                 args.cuda, summ=False, log_vamp_zk=log_vamp_zk)

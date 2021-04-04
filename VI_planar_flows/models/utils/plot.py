@@ -1,138 +1,67 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats.kde import gaussian_kde
-from target_distribution import TargetDistribution
+from target_distribution import target_distribution
 
-
-def plot_density(density, xlim=4, ylim=4, ax=None, cmap="Blues"):
-    x = y = np.linspace(-xlim, xlim, 300)
-    X, Y = np.meshgrid(x, y)
+def plot_true_density(target_density, axlim, ax=None):
+    n = 1000
+    x = torch.linspace(-axlim, axlim, n)
+    X, Y = torch.meshgrid(x, x)
+    Z = torch.stack((X.flatten(), Y.flatten()), dim=-1)    
     shape = X.shape
-    X_flatten, Y_flatten = np.reshape(X, (-1, 1)), np.reshape(Y, (-1, 1))
-    Z = torch.from_numpy(np.concatenate([X_flatten, Y_flatten], 1))
-    U = torch.exp(-density(Z))
-    U = U.reshape(shape)
-    if ax is None:
-        fig = plt.figure(figsize=(7, 7))
-        ax = fig.add_subplot(111)
+ 
+    ax.pcolormesh(X, Y, torch.exp(-target_density(Z)).view(shape,shape), cmap=plt.cm.jet)
+    ax.set_aspect(1.) #sets y-axis, x-axis ratio
+    plt.setp(ax, xticks=[], yticks=[])
 
-    ax.set_xlim(-xlim, xlim)
-    ax.set_ylim(-xlim, xlim)
-    ax.set_aspect(1)
-
-    ax.pcolormesh(X, Y, U, cmap=cmap, rasterized=True)
-    ax.tick_params(
-        axis="both",
-        left=False,
-        top=False,
-        right=False,
-        bottom=False,
-        labelleft=False,
-        labeltop=False,
-        labelright=False,
-        labelbottom=False,
-    )
-    return ax
-
-
-def plot_transformation(model, n=1000, xlim=4, ylim=4, ax=None, cmap="Blues"): ######changed 500 with 128
-    base_distr = torch.distributions.MultivariateNormal(torch.zeros(2), torch.eye(2))
-    x = torch.linspace(-xlim, xlim, n)
-    xx, yy = torch.meshgrid(x, x)
-    zz = torch.stack((xx.flatten(), yy.flatten()), dim=-1).squeeze()
-
-    zk, sum_log_jacobians = model(zz)
-
-    base_log_prob = base_distr.log_prob(zz)
-    final_log_prob = base_log_prob - sum_log_jacobians
-    qk = torch.exp(final_log_prob)
-    if ax is None:
-        fig = plt.figure(figsize=[7, 7])
-        ax = fig.add_subplot(111)
-    ax.set_xlim(-xlim, xlim)
-    ax.set_ylim(-ylim, ylim)
-    ax.set_aspect(1)
+    
+def plot_flow_density(model, axlim, ax=None): 
+    n = 1000
+    x = torch.linspace(-axlim, axlim, n)
+    X, Y = torch.meshgrid(x, x)
+    Z = torch.stack((X.flatten(), Y.flatten()), dim=-1)
+    
+    #plot posterior approximation
+    z_k, sum_log_det_j = model(Z)
+    
+    q_0 = torch.distributions.MultivariateNormal(torch.zeros(2), torch.eye(2)) ###z_size and mu, var different that 0, I
+    # Equation (7)
+    log_q_k = q_0.log_prob(Z) - sum_log_det_j
+    q_k = torch.exp(log_q_k)
+    
+    ax.set_xlim(-axlim, axlim)
+    ax.set_ylim(-axlim, axlim)
+    
     ax.pcolormesh(
-        zk[:, 0].detach().data.reshape(n, n),
-        zk[:, 1].detach().data.reshape(n, n),
-        qk.detach().data.reshape(n, n),
-        cmap=cmap,
-        rasterized=True,
+        z_k[:, 0].detach().numpy().reshape(n,n), # detach().numpy() is required because zk is a tensor that requires grad
+        z_k[:, 1].detach().numpy().reshape(n,n),
+        q_k.detach().numpy().reshape(n,n),
+        cmap=plt.cm.jet
     )
-
-    plt.tick_params(
-        axis="both",
-        left=False,
-        top=False,
-        right=False,
-        bottom=False,
-        labelleft=False,
-        labeltop=False,
-        labelright=False,
-        labelbottom=False,
-    )
-    if cmap == "Blues":
-        ax.set_facecolor(plt.cm.Blues(0.0))
-    elif cmap == "Reds":
-        ax.set_facecolor(plt.cm.Reds(0.0))
-
-    return ax
+    ax.set_aspect(1)  
+    plt.setp(ax, xticks=[], yticks=[])
+    ax.set_facecolor(plt.cm.jet(0.))
 
 
-def plot_comparison(model, target_distr, flow_length, dpi=400):
-    xlim = ylim = 7 if target_distr == "ring" else 5
-    fig, axes = plt.subplots(
-        ncols=2, nrows=1, sharex=True, sharey=True, figsize=[10, 5], dpi=dpi
-    )
-    axes[0].tick_params(
-        axis="both",
-        left=False,
-        top=False,
-        right=False,
-        bottom=False,
-        labelleft=False,
-        labeltop=False,
-        labelright=False,
-        labelbottom=False,
-    )
-    # Plot true density.
-    density = TargetDistribution(target_distr)
-    plot_density(density, xlim=xlim, ylim=ylim, ax=axes[0])
-    axes[0].text(
-        0,
-        ylim - 1,
-        "True density $\exp(-{})$".format(target_distr),
-        size=14,
-        horizontalalignment="center",
-    )
+def plot_comparison(model, target_distr, flow_length):
+    axlim = 4
+    fig, axes = plt.subplots(ncols=2, nrows=1, figsize=[20, 5])
+ 
+    # plot target density
+    target = target_distribution(target_distr)
+    plot_true_density(target, axlim=axlim, ax=axes[0])
+    axes[0].set_title(f"True density of potential number '{target_distr}'", size=14)
 
-    # Plot estimated density.
-    batch = torch.zeros(1000, 2).normal_(mean=0, std=1) ###cghanged 500 with 128
-    z = model(batch)[0].detach().numpy()
-    axes[1] = plot_transformation(model, xlim=xlim, ylim=ylim, ax=axes[1], cmap="Reds")
-    axes[1].text(
-        0,
-        ylim - 1,
-        "Estimated density $\exp(-{})$".format(target_distr),
-        size=14,
-        horizontalalignment="center",
-    )
-#    fig.savefig(
-#        "results/" + target_distr + "_K" + str(flow_length) + "_comparison.pdf",
-#        bbox_inches="tight",
-#        pad_inches=0.1,
-#    )
+    #plot approximated density
+    plot_flow_density(model, axlim=axlim, ax=axes[1])
+    axes[1].set_title(f"Estimated density of potential number '{target_distr}'", size=14)
 
 
-def plot_available_distributions():
-    target_distributions = ["U_1", "U_2", "U_3", "U_4", "ring"]
-    cmaps = ["Reds", "Purples", "Oranges", "Greens", "Blues"]
-    fig, axes = plt.subplots(1, len(target_distributions), figsize=(20, 5))
+def plot_all_targets():
+    target_distributions = ["1", "2", "3", "4"]
+    fig, axes = plt.subplots(ncols=len(target_distributions), nrows=1, figsize=[25, 15])
     for i, distr in enumerate(target_distributions):
-        axlim = 7 if distr == "ring" else 5
-        density = TargetDistribution(distr)
-        plot_density(density, xlim=axlim, ylim=axlim, ax=axes[i], cmap=cmaps[i])
-        axes[i].set_title(f"Name: '{distr}'", size=16)
-        plt.setp(axes, xticks=[], yticks=[])
-    plt.show()
+        axlim = 4
+        density = target_distribution(distr)
+        plot_true_density(density, axlim=axlim, ax=axes[i])
+        axes[i].set_title(f"Name: '{distr}'", size=14)

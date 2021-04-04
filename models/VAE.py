@@ -69,7 +69,7 @@ class VAE(nn.Module):
         
         
         
-    def log_vamp_zk(self, zk, log_det_j):
+    def log_vamp_zk(self, zk):
         """
         Calculates log p(z_k) under VampPrior
         """
@@ -85,14 +85,12 @@ class VAE(nn.Module):
         
         # expand
         zk_expanded = zk.unsqueeze(1)
-        log_det_j_exp = log_det_j.unsqueeze(1)
         mus = vamp_mu.unsqueeze(0)
         logvars = vamp_logvar.unsqueeze(0)
         
         # calculate log p(z_k)
-        log_per_pseudo = log_normal_dist(zk_expanded, mus, logvars, dim=2) - log_det_j_exp - math.log(self.num_pseudos)
-        log_max, _ = torch.max(log_per_pseudo, 1)
-        log_total = log_max + torch.log(torch.sum(torch.exp(log_per_pseudo - log_max.unsqueeze(1)), 1))
+        log_per_pseudo = log_normal_dist(zk_expanded, mus, logvars, dim=2) - math.log(self.num_pseudos)
+        log_total = torch.logsumexp(log_per_pseudo, 1)
         
         return log_total
     

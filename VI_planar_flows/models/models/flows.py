@@ -2,68 +2,81 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# class Planar(nn.Module):   #PLanar Transfromation
+class Planar(nn.Module):   #PLanar Transfromation
 
-#     def __init__(self):
-
-#         super(Planar, self).__init__()
-#         self.h = nn.Tanh()
-#         self.w = nn.Parameter(torch.randn(1, 2).normal_(0, 0.1))
-#         self.b = nn.Parameter(torch.randn(1).normal_(0, 0.1))
-#         self.u = nn.Parameter(torch.randn(1, 2).normal_(0, 0.1))
-
-#     def forward(self, z):
-#         """
-#         Computes the following transformation:
-#         z' = z + u h( w^T z + b)
-#         Input shapes:
-#         shape u = (1, z_size)
-#         shape w = (1, z_size)
-#         shape b = scalar
-#         shape z = (batch_size, z_size).
-#         """
-#         # Equation (10)
-#         prod = torch.mm(z, self.w.T) + self.b
-#         f_z = z + self.u * self.h(prod) # this is a 3d vector
-#         # Equation (11)
-#         psi = self.w * (1 - self.h(prod) ** 2)  # w * h'(prod)
-#         # Equation (12)
-#         log_det_jacobian = torch.log(torch.abs(1 + torch.mm(psi, self.u.T)))
-        
-#         return f_z, log_det_jacobian.T
-
-class Planar(nn.Module):
-
-    def __init__(self):
+    def __init__(self, z_size):
 
         super(Planar, self).__init__()
         self.h = nn.Tanh()
+        self.w = nn.Parameter(torch.randn(1, z_size).normal_(0, 0.1))
+        self.b = nn.Parameter(torch.randn(1).normal_(0, 0.1))
+        self.u = nn.Parameter(torch.randn(1, z_size).normal_(0, 0.1))
 
-    def forward(self, z, u, w, b):
+    def forward(self, z):
         """
         Computes the following transformation:
         z' = z + u h( w^T z + b)
         Input shapes:
-        shape u = (batch_size, z_size, 1)
-        shape w = (batch_size, 1, z_size)
-        shape b = (batch_size, 1, 1)
+        shape u = (1, z_size)
+        shape w = (1, z_size)
+        shape b = scalar
         shape z = (batch_size, z_size).
         """
-
+        prod = torch.mm(z, self.w.T) + self.b
         # Equation (10)
-        z = z.unsqueeze(2)
-        prod = torch.bmm(w, z) + b
-        f_z = z + u * self.h(prod) # this is a 3d vector
-        f_z = f_z.squeeze(2) # this is a 2d vector
+        f_z = z + self.u * self.h(prod)
+        # Equation (11)
+        psi = self.w * (1 - self.h(prod) ** 2)  # psi = w * h'(prod)
+        # Equation (12)
+        log_det_jacobian = torch.log(torch.abs(1 + torch.mm(psi, self.u.T)))
+        
+        return f_z, log_det_jacobian.T
+
+#First layer is a mapping from standard normal to a diagonal Gaussian, N(z|mu, var) -- mu and var are learnable parameters.
+class FirstLayer(nn.Module):
+    def __init__(self, z_size):
+        super().__init__()
+        self.mu = nn.Parameter(torch.zeros(z_size)).requires_grad_(True)
+        self.logvar = nn.Parameter(torch.zeros(z_size)).requires_grad_(True)
+    
+    def forward(self, z):                                                 
+        f_z = self.mu + self.logvar.exp() * z 
+        self.sum_log_abs_det_jacobians = self.logvar.sum() #det of a diagonal matrix
+        
+        return f_z, self.sum_log_abs_det_jacobians * torch.ones(1,z.shape[0])
+
+#class Planar(nn.Module):
+
+#    def __init__(self):
+
+#        super(Planar, self).__init__()
+#        self.h = nn.Tanh()
+
+#    def forward(self, z, u, w, b):
+#        """
+#        Computes the following transformation:
+#        z' = z + u h( w^T z + b)
+#        Input shapes:
+#        shape u = (batch_size, z_size, 1)
+#        shape w = (batch_size, 1, z_size)
+#        shape b = (batch_size, 1, 1)
+#        shape z = (batch_size, z_size).
+#        """
+
+#        # Equation (10)
+#        z = z.unsqueeze(2)
+#        prod = torch.bmm(w, z) + b
+#        f_z = z + u * self.h(prod) # this is a 3d vector
+#        f_z = f_z.squeeze(2) # this is a 2d vector
 
         # compute logdetJ
         # Equation (11)
-        psi = w * (1 - self.h(prod) ** 2)  # w * h'(prod)
-        # Equation (12)
-        log_det_jacobian = torch.log(torch.abs(1 + torch.bmm(psi, u)))
-        log_det_jacobian = log_det_jacobian.squeeze(2).squeeze(1)
+#        psi = w * (1 - self.h(prod) ** 2)  # w * h'(prod)
+#        # Equation (12)
+#        log_det_jacobian = torch.log(torch.abs(1 + torch.bmm(psi, u)))
+#        log_det_jacobian = log_det_jacobian.squeeze(2).squeeze(1)
 
-        return f_z, log_det_jacobian
+#        return f_z, log_det_jacobian
 
 class Coupling(nn.Module):
     def __init__(self, in_out_dim, mid_dim, hidden, mask_config):
