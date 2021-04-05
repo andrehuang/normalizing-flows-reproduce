@@ -162,16 +162,13 @@ def run(args):
     results["log_likelihood"] = log_likelihood
 
     
-    json_dir = args.out_dir + f"H2{args.flow}flow_k_{args.num_flows}_RMSProp_lr{args.learning_rate}"
+    json_dir = args.out_dir + f"{args.flow}Scale_k_{args.num_flows}_RMSProp_lr{args.learning_rate}_2"
     print("Saving data at: " + json_dir)
     output_folder = pathlib.Path(json_dir)
     output_folder.mkdir(parents=True, exist_ok=True)
     results_json = json.dumps(results, indent=4, sort_keys=True)
     (output_folder / "results.json").write_text(results_json)
 
-# How to load:
-# with open(json_dir) as json_file:
-#   data = json.load(json_file)
   
 if __name__ == "__main__":
 

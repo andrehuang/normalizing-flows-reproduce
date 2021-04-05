@@ -296,9 +296,11 @@ class NICEVAE_amor(VAE):
         # NICE additive shift layers
         for k in range(self.num_flows):
             flow_k = flows.Coupling_amor()
-            scale_k = flows.Scaling(self.z_size)
+            # scale_k = flows.Scaling(self.z_size)
             self.add_module('flow_' + str(k), flow_k)
-            self.add_module('scale_' + str(k), scale_k)
+            # self.add_module('scale_' + str(k), scale_k)
+        
+        self.scaling = flows.Scaling(self.z_size)
         
     def encode(self, x):
         """
@@ -341,10 +343,13 @@ class NICEVAE_amor(VAE):
         # Normalizing flows
         for k in range(self.num_flows):
             flow_k = getattr(self, 'flow_' + str(k))
-            scale_k = getattr(self, 'scale_' + str(k))
-            z_k, log_det_jacobian = scale_k(flow_k(z[k], u[:, k, :, :], w[:, k, :, :], b[:, k, :, :]))
+            # scale_k = getattr(self, 'scale_' + str(k))
+            z_k = flow_k(z[k], u[:, k, :, :], w[:, k, :, :], b[:, k, :, :])
             z.append(z_k)
-            self.log_det_j += log_det_jacobian
+            self.log_det_j += 0
+        z_k, log_det_jacobian = self.scaling(z_k)
+        z.append(z_k)
+        self.log_det_j += log_det_jacobian
 
         x_mean = self.decode(z[-1])
 
