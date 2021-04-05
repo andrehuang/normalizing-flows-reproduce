@@ -105,7 +105,8 @@ def run(args):
     if args.flow == "planar":
         model = VAE.PlanarVAE(encoder, decoder, args)
     elif args.flow == "NICE":
-        model = VAE.NICEVAE(encoder, decoder, args)
+        # model = VAE.NICEVAE(encoder, decoder, args)
+        model = VAE.NICEVAE_amor(encoder, decoder, args)
     
 
     
@@ -161,7 +162,7 @@ def run(args):
     results["log_likelihood"] = log_likelihood
 
     
-    json_dir = args.out_dir + f"{args.flow}flow_k_{args.num_flows}_RMSProp_lr{args.learning_rate}"
+    json_dir = args.out_dir + f"H2{args.flow}flow_k_{args.num_flows}_RMSProp_lr{args.learning_rate}"
     print("Saving data at: " + json_dir)
     output_folder = pathlib.Path(json_dir)
     output_folder.mkdir(parents=True, exist_ok=True)

@@ -36,16 +36,14 @@ class Planar(nn.Module):
         return f_z, log_det_jacobian
 
 class Coupling(nn.Module):
-    def __init__(self, in_out_dim, mid_dim, hidden, mask_config):
+    def __init__(self, in_out_dim, mid_dim, hidden):
         """Initialize a coupling layer.
         Args:
             in_out_dim: input/output dimensions.
             mid_dim: number of units in a hidden layer.
             hidden: number of hidden layers.
-            mask_config: 1 if transform odd units, 0 if transform even units.
         """
         super(Coupling, self).__init__()
-        self.mask_config = mask_config
 
         self.in_block = nn.Sequential(
             nn.Linear(in_out_dim//2, mid_dim),
@@ -65,12 +63,13 @@ class Coupling(nn.Module):
         """
         [B, W] = list(x.size())
         # Random permutation
-        # x = x[:, torch.randperm(W)]
+        perm = torch.randperm(W)
+        eye = torch.eye(W)
+        P = eye[perm, :].cuda()
+        PT = P.t()
+        x = x @ P
         x = x.reshape((B, W//2, 2))
-        if self.mask_config:
-            on, off = x[:, :, 0], x[:, :, 1]
-        else:
-            off, on = x[:, :, 0], x[:, :, 1]
+        on, off = x[:, :, 0], x[:, :, 1]
 
         off_ = self.in_block(off)
         for i in range(len(self.mid_block)):
@@ -79,12 +78,50 @@ class Coupling(nn.Module):
  
         on = on + shift
 
-        if self.mask_config:
-            x = torch.stack((on, off), dim=2)
-        else:
-            x = torch.stack((off, on), dim=2)
-        return x.reshape((B, W))
+        x = torch.stack((on, off), dim=2)
+        x = x.reshape((B, W))
+        x = x @ PT
+        return x
 
+class Coupling_amor(nn.Module):
+    def __init__(self):
+        """Initialize a coupling layer.
+        Args:
+            Coupling with only 1 hidden layer
+            mask_config: 1 if transform odd units, 0 if transform even units.
+        """
+        super(Coupling_amor, self).__init__()
+        self.h = nn.Tanh()
+
+    def forward(self, x, u, w, b):
+        """Forward pass.
+        Args:
+            x: input tensor.
+        Returns:
+            transformed tensor.
+        """
+        [B, W] = list(x.size())
+        # Random permutation
+        perm = torch.randperm(W)
+        eye = torch.eye(W)
+        P = eye[perm, :].cuda()
+        PT = P.t()
+        x = x @ P
+
+        x = x.reshape((B, W//2, 2))
+        on, off = x[:, :, 0], x[:, :, 1]
+
+        off_ = off.unsqueeze(2)
+        prod = torch.bmm(w, off_) + b
+        shift = u * self.h(prod)
+        shift = shift.squeeze(2)
+
+        on = on + shift # Additive coupling layer
+        x = torch.stack((on, off), dim=2)
+
+        x = x.reshape((B, W))
+        x = x @ PT
+        return x
 
 class Scaling(nn.Module):
     """
