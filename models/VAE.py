@@ -292,6 +292,7 @@ class NICEVAE_amor(VAE):
         self.amor_u = nn.Linear(self.encoder_dim, self.num_flows * (self.z_size//2))
         self.amor_w = nn.Linear(self.encoder_dim, self.num_flows * (self.z_size//2))
         self.amor_b = nn.Linear(self.encoder_dim, self.num_flows)
+        self.amor_s = nn.Linear(self.encoder_dim, self.z_size)
 
         # NICE additive shift layers
         for k in range(self.num_flows):
@@ -300,7 +301,7 @@ class NICEVAE_amor(VAE):
             self.add_module('flow_' + str(k), flow_k)
             # self.add_module('scale_' + str(k), scale_k)
         
-        self.scaling = flows.Scaling(self.z_size)
+        self.scaling = flows.Scaling()
         
     def encode(self, x):
         """
@@ -317,8 +318,9 @@ class NICEVAE_amor(VAE):
         u = self.amor_u(h).view(batch_size, self.num_flows, self.z_size//2, 1)
         w = self.amor_w(h).view(batch_size, self.num_flows, 1, self.z_size//2)
         b = self.amor_b(h).view(batch_size, self.num_flows, 1, 1)
+        s = self.amor_s(h).view(batch_size, self.z_size)
 
-        return mu, var, u, w, b
+        return mu, var, u, w, b, s
 
         
 
@@ -334,7 +336,7 @@ class NICEVAE_amor(VAE):
             self.log_det_j = torch.zeros([x.shape[0]])
 
 
-        z_mu, z_var, u, w, b = self.encode(x)
+        z_mu, z_var, u, w, b, s = self.encode(x)
 
         # z_0 
         z_0 = self.reparameterize(z_mu, z_var)
@@ -347,7 +349,7 @@ class NICEVAE_amor(VAE):
             z_k = flow_k(z[k], u[:, k, :, :], w[:, k, :, :], b[:, k, :, :])
             z.append(z_k)
             self.log_det_j += 0
-        z_k, log_det_jacobian = self.scaling(z_k)
+        z_k, log_det_jacobian = self.scaling(z_k, s)
         z.append(z_k)
         self.log_det_j += log_det_jacobian
 

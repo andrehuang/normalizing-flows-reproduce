@@ -127,22 +127,22 @@ class Scaling(nn.Module):
     """
     Log-scaling layer.
     """
-    def __init__(self, dim):
+    def __init__(self):
         """Initialize a (log-)scaling layer.
         Args:
             dim: input/output dimensions.
         """
         super(Scaling, self).__init__()
-        self.scale = nn.Parameter(
-            torch.zeros((1, dim)), requires_grad=True)
+        # self.scale = nn.Parameter(
+        #     torch.zeros((1, dim)), requires_grad=True)
 
-    def forward(self, x):
+    def forward(self, x, scale):
         """Forward pass.
         Args:
             x: input tensor.
         Returns:
             transformed tensor and log-determinant of Jacobian.
         """
-        log_det_J = torch.sum(self.scale)
-        x = x * torch.exp(self.scale)
+        log_det_J = torch.sum(scale, dim=1)
+        x = x * torch.exp(scale)
         return x, log_det_J
