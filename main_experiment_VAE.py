@@ -61,7 +61,10 @@ parser.add_argument('--min_beta', type=float, default=0.0, metavar='MB',
 parser.add_argument('-f', '--flow', type=str, default='planar', choices=['planar', 'NICE'])
 parser.add_argument('-nf', '--num_flows', type=int, default=10,
                     metavar='NUM_FLOWS', help='Number of flow layers, ignored in absence of flows')
-
+parser.add_argument('-nov', '--num_orthonormal_vec', type=int, default=8, metavar='NUM_ORTHONORMAL_VEC',
+                    help='For orthogonal flow: number of orthogonal vectors (M)')
+parser.add_argument('--syl_ortho_invertible', type=bool, default=False, metavar='ORTHO_FLOW_INVERT',
+                    help='select if we need the sylvester orthogonal flow to be invertible')
 parser.add_argument('--z_size', type=int, default=40, metavar='ZSIZE',
                     help='how many stochastic hidden units')
 parser.add_argument('--encoder_dim', type=int, default=400, metavar='ESIZE',
@@ -107,6 +110,8 @@ def run(args):
     elif args.flow == "NICE":
         # model = VAE.NICEVAE(encoder, decoder, args)
         model = VAE.NICEVAE_amor(encoder, decoder, args)
+    elif args.flow == "syl_orthogonal":
+        model = VAE.Sylvester_ortho_VAE(encoder, decoder, args)
     
 
     
