@@ -146,3 +146,51 @@ class Scaling(nn.Module):
         log_det_J = torch.sum(scale, dim=1)
         x = x * torch.exp(scale)
         return x, log_det_J
+    
+class Sylvester(nn.Module):
+    """
+    Sylvester normalizing flow.
+    """
+
+    def __init__(self, M):
+
+        super(Sylvester, self).__init__()
+        self.h = nn.Tanh()
+
+    def forward(self, z, Q, R, R_tilde, b):
+        """
+        Computes the transformation of Equation (13):
+        z' = z + QR h(R_tilde Q^T z + b)
+        Input shapes:
+        shape z = (batch_size, z_size)
+        shape R = (batch_size, M, M)
+        shape R_tilde = (batch_size, M, M)
+        shape Q = (batch_size, z_size , M)
+        shape b  = (batch_size, M)
+        """
+
+        ##Computations for Equation (13)
+        z = z.unsqueeze(2) 
+        b = b.unsqueeze(2)         
+        RQ = torch.bmm(R_tilde, Q.transpose(2, 1))
+        prod  = torch.bmm(RQ, z) + b
+        QR = torch.bmm(Q, R)
+        
+        #Equation (13)
+        f_z = z + torch.bmm(QR, self.h(prod))
+        f_z = f_z.squeeze(2)
+        
+        ##Computations for Equation (14)
+        R_diag = torch.diagonal(R, dim1=1, dim2=2)
+        R_tidle_diag = torch.diagonal(R_tilde, dim1=1, dim2=2)
+
+        RR_diag = R_diag * R_tidle_diag                     #RR_diag.shape = [batch_size, M]   
+        h_der = (1 - self.h(prod) ** 2).squeeze(2)          #h'(R_tidle Q^T z + b)
+        
+        #diagonal of the argument of det in Equation (14)
+        det_J_diag = 1 + h_der * RR_diag 
+        
+        log_det_J_diag = det_J_diag.abs().log()                     
+        log_det_jacobian = log_det_J_diag.sum(-1) #det of diagonal matrix
+
+        return f_z, log_det_jacobian
