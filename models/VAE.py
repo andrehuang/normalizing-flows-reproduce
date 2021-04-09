@@ -225,7 +225,7 @@ class NICEVAE(VAE):
         for k in range(self.num_flows):
             flow_k = flows.Coupling(in_out_dim=self.z_size, 
                      mid_dim=80, # to match the number of parameters in the NF flow
-                     hidden=1)
+                     hidden=2)
             scale_k = flows.Scaling(self.z_size)
             self.add_module('flow_' + str(k), flow_k)
             self.add_module('scale_' + str(k), scale_k)
@@ -296,10 +296,8 @@ class NICEVAE_amor(VAE):
 
         # NICE additive shift layers
         for k in range(self.num_flows):
-            flow_k = flows.Coupling_amor()
-            # scale_k = flows.Scaling(self.z_size)
+            flow_k = flows.Coupling_amor(self.z_size)
             self.add_module('flow_' + str(k), flow_k)
-            # self.add_module('scale_' + str(k), scale_k)
         
         self.scaling = flows.Scaling()
         

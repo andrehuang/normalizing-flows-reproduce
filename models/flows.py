@@ -53,6 +53,10 @@ class Coupling(nn.Module):
                 nn.Linear(mid_dim, mid_dim),
                 nn.ReLU()) for _ in range(hidden - 1)])
         self.out_block = nn.Linear(mid_dim, in_out_dim//2)
+        perm = torch.randperm(in_out_dim)
+​        eye = torch.eye(in_out_dim)
+​        self.P = eye[perm, :].cuda()
+​        self.PT = self.P.t()
 
     def forward(self, x):
         """Forward pass.
@@ -63,11 +67,7 @@ class Coupling(nn.Module):
         """
         [B, W] = list(x.size())
         # Random permutation
-        perm = torch.randperm(W)
-        eye = torch.eye(W)
-        P = eye[perm, :].cuda()
-        PT = P.t()
-        x = x @ P
+        x = x @ self.P
         x = x.reshape((B, W//2, 2))
         on, off = x[:, :, 0], x[:, :, 1]
 
@@ -80,11 +80,11 @@ class Coupling(nn.Module):
 
         x = torch.stack((on, off), dim=2)
         x = x.reshape((B, W))
-        x = x @ PT
+        x = x @ self.PT
         return x
 
 class Coupling_amor(nn.Module):
-    def __init__(self):
+    def __init__(self, input_dim):
         """Initialize a coupling layer.
         Args:
             Coupling with only 1 hidden layer
@@ -92,6 +92,10 @@ class Coupling_amor(nn.Module):
         """
         super(Coupling_amor, self).__init__()
         self.h = nn.Tanh()
+        perm = torch.randperm(input_dim)
+​        eye = torch.eye(input_dim)
+​        self.P = eye[perm, :].cuda()
+​        self.PT = self.P.t()
 
     def forward(self, x, u, w, b):
         """Forward pass.
@@ -102,11 +106,11 @@ class Coupling_amor(nn.Module):
         """
         [B, W] = list(x.size())
         # Random permutation
-        perm = torch.randperm(W)
-        eye = torch.eye(W)
-        P = eye[perm, :].cuda()
-        PT = P.t()
-        x = x @ P
+        # perm = torch.randperm(W)
+        # eye = torch.eye(W)
+        # P = eye[perm, :].cuda()
+        # PT = P.t()
+        x = x @ self.P
 
         x = x.reshape((B, W//2, 2))
         on, off = x[:, :, 0], x[:, :, 1]
@@ -120,7 +124,7 @@ class Coupling_amor(nn.Module):
         x = torch.stack((on, off), dim=2)
 
         x = x.reshape((B, W))
-        x = x @ PT
+        x = x @ self.PT
         return x
 
 class Scaling(nn.Module):
