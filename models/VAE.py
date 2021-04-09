@@ -501,3 +501,36 @@ class Sylvester_ortho_VAE(VAE):
         x_mean = self.decode(z[-1])
 
         return x_mean, z_mu, z_var, log_det_j, z[0], z[-1]
+    
+    
+class RealNVPVAE(VAE):
+    def __init__(self, encoder, decoder, args):
+        super(RealNVPVAE, self).__init__(encoder, decoder, args)
+        self.log_det_j = 0.
+        self.num_flows = args.num_flows
+        for k in range(self.num_flows):
+            flow_k = flows.AffineCoupling(self.z_size, 80, 1)
+            self.add_module('flow_' + str(k), flow_k)
+            
+    def encode(self, x):
+        batch_size = x.size(0)
+        h = self.encoder(x)
+        h = h.view(h.size(0), -1)
+        mu = self.mu(h)
+        var = self.var(h)
+        return mu, var
+    
+    def forward(self, x):
+        self.log_det_j = torch.zeros([x.shape[0]])
+        z_mu, z_var= self.encode(x)
+        z = [self.reparameterize(z_mu, z_var)]
+        for k in range(self.num_flows):
+            flow_k = getattr(self, 'flow_' + str(k))
+            z_k, log_det_jacobian = flow_k(z[k])
+            z.append(z_k)
+            # print("z", str(k))
+            # print(z_k)
+            # print(z_k.shape)
+            self.log_det_j += log_det_jacobian
+        x_mean = self.decode(z[-1])
+        return x_mean, z_mu, z_var, self.log_det_j, z[0], z[-1]
