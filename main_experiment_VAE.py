@@ -112,6 +112,8 @@ def run(args):
         model = VAE.NICEVAE_amor(encoder, decoder, args)
     elif args.flow == "syl_orthogonal":
         model = VAE.Sylvester_ortho_VAE(encoder, decoder, args)
+    elif args.flow == "real":
+        model = VAE.RealNVPVAE(encoder, decoder, args)
     
 
     
