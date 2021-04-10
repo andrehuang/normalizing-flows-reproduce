@@ -128,8 +128,8 @@ def run(args):
         
     print(model)
 
-    optimizer = optim.RMSprop(model.parameters(), lr=args.learning_rate, momentum=0.9)
-    # optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    # optimizer = optim.RMSprop(model.parameters(), lr=args.learning_rate, momentum=0.9)
+    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
     # optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=5e-4)
     # milestones = [100, 200, 300, 400]
@@ -168,8 +168,8 @@ def run(args):
     results["ELBO"] = test_loss
     results["log_likelihood"] = log_likelihood
 
-    
-    json_dir = args.out_dir + f"{args.flow}Scale_k_{args.num_flows}_RMSProp_lr{args.learning_rate}_2"
+    # json_dir = args.out_dir + f"{args.flow}_Affine_k_{args.num_flows}_Adam_lr{args.learning_rate}_std_RealNVPVAE_3.4__AffineCoupling_3.8"
+    json_dir = args.out_dir + f"{args.flow}_nvp_k_{args.num_flows}"
     print("Saving data at: " + json_dir)
     output_folder = pathlib.Path(json_dir)
     output_folder.mkdir(parents=True, exist_ok=True)
