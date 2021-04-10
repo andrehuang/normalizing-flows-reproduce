@@ -54,9 +54,9 @@ class Coupling(nn.Module):
                 nn.ReLU()) for _ in range(hidden - 1)])
         self.out_block = nn.Linear(mid_dim, in_out_dim//2)
         perm = torch.randperm(in_out_dim)
-​        eye = torch.eye(in_out_dim)
-​        self.P = eye[perm, :].cuda()
-​        self.PT = self.P.t()
+        eye = torch.eye(in_out_dim)
+        self.P = eye[perm, :].cuda()
+        self.PT = self.P.t()
 
     def forward(self, x):
         """Forward pass.
@@ -83,6 +83,30 @@ class Coupling(nn.Module):
         x = x @ self.PT
         return x
 
+class Scaling(nn.Module):
+    """
+    Log-scaling layer.
+    """
+    def __init__(self, dim):
+        """Initialize a (log-)scaling layer.
+        Args:
+            dim: input/output dimensions.
+        """
+        super(Scaling, self).__init__()
+        self.scale = nn.Parameter(
+            torch.zeros((1, dim)), requires_grad=True)
+
+    def forward(self, x):
+        """Forward pass.
+        Args:
+            x: input tensor.
+        Returns:
+            transformed tensor and log-determinant of Jacobian.
+        """
+        log_det_J = torch.sum(self.scale, dim=1)
+        x = x * torch.exp(self.scale)
+        return x, log_det_J
+
 class Coupling_amor(nn.Module):
     def __init__(self, input_dim):
         """Initialize a coupling layer.
@@ -93,9 +117,9 @@ class Coupling_amor(nn.Module):
         super(Coupling_amor, self).__init__()
         self.h = nn.Tanh()
         perm = torch.randperm(input_dim)
-​        eye = torch.eye(input_dim)
-​        self.P = eye[perm, :].cuda()
-​        self.PT = self.P.t()
+        eye = torch.eye(input_dim)
+        self.P = eye[perm, :].cuda()
+        self.PT = self.P.t()
 
     def forward(self, x, u, w, b):
         """Forward pass.
@@ -127,7 +151,7 @@ class Coupling_amor(nn.Module):
         x = x @ self.PT
         return x
 
-class Scaling(nn.Module):
+class Scaling_amor(nn.Module):
     """
     Log-scaling layer.
     """
@@ -136,7 +160,7 @@ class Scaling(nn.Module):
         Args:
             dim: input/output dimensions.
         """
-        super(Scaling, self).__init__()
+        super(Scaling_amor, self).__init__()
         # self.scale = nn.Parameter(
         #     torch.zeros((1, dim)), requires_grad=True)
 

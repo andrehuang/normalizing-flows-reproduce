@@ -226,9 +226,8 @@ class NICEVAE(VAE):
             flow_k = flows.Coupling(in_out_dim=self.z_size, 
                      mid_dim=80, # to match the number of parameters in the NF flow
                      hidden=2)
-            scale_k = flows.Scaling(self.z_size)
             self.add_module('flow_' + str(k), flow_k)
-            self.add_module('scale_' + str(k), scale_k)
+        self.scaling = flows.Scaling(args.z_size)
 
     def encode(self, x):
         """
@@ -265,10 +264,12 @@ class NICEVAE(VAE):
         # Normalizing flows
         for k in range(self.num_flows):
             flow_k = getattr(self, 'flow_' + str(k))
-            scale_k = getattr(self, 'scale_' + str(k))
-            z_k, log_det_jacobian = scale_k(flow_k(z[k]))
+            z_k = flow_k(z[k])
             z.append(z_k)
-            self.log_det_j += log_det_jacobian
+
+        z_k, log_det_jacobian = self.scaling(z_k)
+        z.append(z_k)
+        self.log_det_j += log_det_jacobian
 
         x_mean = self.decode(z[-1])
 
@@ -299,7 +300,7 @@ class NICEVAE_amor(VAE):
             flow_k = flows.Coupling_amor(self.z_size)
             self.add_module('flow_' + str(k), flow_k)
         
-        self.scaling = flows.Scaling()
+        self.scaling = flows.Scaling_amor()
         
     def encode(self, x):
         """
