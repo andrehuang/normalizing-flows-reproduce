@@ -80,3 +80,40 @@ class NICEFlow(nn.Module):
         for i in range(len(self.coupling)):
             x = self.coupling[i](x)
         return self.scaling(x)
+    
+    
+    
+class RealNVPFlow(nn.Module):
+    def __init__(self, num_flows, input_output_dim, mid_dim, hidden=1):
+        """Initialize a RealNV?P flow.
+        Args:
+            num_flows: number of coupling layers.
+            input_output_dim: input/output dimensions.
+            mid_dim: number of units in a hidden layer.
+            hidden: number of hidden layers.
+        """
+        super(RealNVPFlow, self).__init__()
+        self.num_flows = num_flows
+        self.input_output_dim = input_output_dim
+        self.mid_dim = mid_dim
+        self.hidden = hidden
+        self.log_det_j = 0
+
+        for k in range(self.num_flows):
+            mask = 0 if k%2==0 else 1
+            flow_k = AffineCoupling(self.input_output_dim, self.mid_dim, self.hidden, mask)
+            self.add_module('flow_' + str(k), flow_k)
+
+    def forward(self, x):
+        """Transformation f: X -> Z (inverse of g).
+        Args:
+            x: tensor in data space X.
+        Returns:
+            transformed tensor in latent space Z.
+        """
+        for k in range(self.num_flows):
+            flow_k = getattr(self, 'flow_' + str(k))
+            x, logdet = flow_k(x)
+            self.log_det_j += logdet
+
+        return x,  self.log_det_j
