@@ -19,7 +19,7 @@ class PlanarFlow(nn.Module):  ##PlanarVI without VAEs
         self.num_flows = K
         
         #First layer 
-        flow_0 = q_0(z_size, learnable_affine):
+        flow_0 = q_0(z_size, learnable_affine)
         self.add_module('flow_' + str(0), flow_0)
         
         # Normalizing flow layers
