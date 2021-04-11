@@ -14,7 +14,7 @@ from util.load_data import load_dataset
 #from util.plotting import plot_training_curve
 import json
 import pathlib
-
+import time
 
 parser = argparse.ArgumentParser(description='PyTorch Normalizing flows')
 
@@ -144,7 +144,7 @@ def run(args):
     val_loss = []
 
     epoch = 0
-
+    t = time.time()
     for epoch in range(1, args.epochs + 1):
 
         tr_loss = train(epoch, train_loader, model, optimizer, args)
@@ -169,8 +169,10 @@ def run(args):
     results["ELBO"] = test_loss
     results["log_likelihood"] = log_likelihood
 
+    elapsed = time.time() - t
+    results["Running time"] = elapsed
     
-    json_dir = args.out_dir + f"{args.flow}perm_k_{args.num_flows}_RMSProp_lr{args.learning_rate}_3"
+    json_dir = args.out_dir + f"{args.flow}perm_k_{args.num_flows}_RMSProp_lr{args.learning_rate}_4"
     print("Saving data at: " + json_dir)
     output_folder = pathlib.Path(json_dir)
     output_folder.mkdir(parents=True, exist_ok=True)

@@ -108,7 +108,7 @@ class NiceFlow(nn.Module):
         
         # Normalizing flow layers
         for k in range(1,self.num_flows+1):
-            flow_k = flow(z_size, mid_dim=2, hidden=3)
+            flow_k = flow(z_size, mid_dim=10, hidden=3)
             self.add_module('flow_' + str(k), flow_k)
                     
         self.scaling = Scaling(z_size)

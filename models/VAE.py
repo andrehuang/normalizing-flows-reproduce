@@ -30,14 +30,12 @@ class VAE(nn.Module):
             nn.Softplus(), # to make var positive
             nn.Hardtanh(min_val=1e-4, max_val=5.))
 
-        if args.dataset == 'mnist':
-            # Note MNIST is binarized; need add Sigmoid() function
-            self.p_mu = nn.Sequential(
+        
+        # Note MNIST is binarized; need add Sigmoid() function
+        self.p_mu = nn.Sequential(
                     nn.Linear(self.decoder_dim, self.input_dim),
                     nn.Sigmoid() 
                 )
-        else:
-            self.p_mu = nn.Linear(self.decoder_dim, self.input_dim)
 
 
         self.log_det_j = 0.

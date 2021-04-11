@@ -87,10 +87,10 @@ def run(target, flow_type, num_flows, num_batches, batch_size, lr, resume=False)
 
 # Define parameters
 z_size = 2
-num_batches = 1000 * 20
+num_batches = 1000 * 200
 batch_size = 500   
 num_flows = [32]
-learning_rate = 1e-3
+learning_rate = 1e-4
 
-for target_distr in ["1"]:
+for target_distr in ["4", "1"]:
     model, loss = run(target_distr, 'NICE', num_flows, num_batches, batch_size, lr = learning_rate, resume=False)
