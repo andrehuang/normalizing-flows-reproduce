@@ -150,5 +150,43 @@ class Scaling(nn.Module):
         log_det_J = torch.sum(self.scale)
         x = x * torch.exp(self.scale)
         return x, log_det_J
+    
+    
+class AffineCoupling(torch.nn.Module):
+    """
+    Input:
+    - input_output_dim, mid_dim, hidden_dim=1, mask 
+    Output:
+    - Transformed x->z
+    - Log-determinant of Jacobian
+    """
+    def __init__(self, input_output_dim, mid_dim, hidden_dim, mask):
+        super(AffineCoupling, self).__init__()
+        self.input_output_dim = input_output_dim
+        self.mid_dim = mid_dim
+        self.hidden_dim = hidden_dim
+        self.mask = mask
+        self.s = nn.Sequential(nn.Linear(input_output_dim//2, mid_dim), nn.Tanh(), nn.Linear(mid_dim, mid_dim), nn.Tanh(), nn.Linear(mid_dim, input_output_dim//2))
+        self.t = nn.Sequential(nn.Linear(input_output_dim//2, mid_dim), nn.Tanh(), nn.Linear(mid_dim, mid_dim), nn.Tanh(), nn.Linear(mid_dim, input_output_dim//2))
 
 
+    def forward(self, x):
+        x1, x2 = x[:, ::2], x[:, 1::2]
+        # skipping 2 elements x1 becomes values at 0,2,4 and x2 becomes 1,5,7..checkerboard masking
+        if self.mask:
+            x1, x2 = x2, x1
+
+        scale = self.s(x1)
+        translate = self.t(x1)
+
+        z1 = x1
+        z2 = x2 * torch.exp(scale)
+        z3 = translate
+        z4 = z2 + z3
+
+        if self.mask:
+            z1, z4 = z4, z1
+
+        z = torch.cat((z1, z4), dim=1)
+        log_det_j = scale.sum(-1)
+        return z, log_det_j
