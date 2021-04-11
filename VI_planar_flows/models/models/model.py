@@ -8,7 +8,7 @@ class PlanarFlow(nn.Module):  ##PlanarVI without VAEs
     Stacking planar transformations
     """
 
-    def __init__(self, K, z_size):
+    def __init__(self, K, z_size, learnable_affine):
         super(PlanarFlow, self).__init__()
 
         # Initialize log-det-jacobian to zero
@@ -19,7 +19,7 @@ class PlanarFlow(nn.Module):  ##PlanarVI without VAEs
         self.num_flows = K
         
         #First layer 
-        flow_0 = q_0(z_size)
+        flow_0 = q_0(z_size, learnable_affine):
         self.add_module('flow_' + str(0), flow_0)
         
         # Normalizing flow layers
