@@ -7,7 +7,6 @@ import torch
 import torch.utils.data
 from torch.autograd import Variable
 import numpy as np
-
 import math
 
 class FirstLayer(nn.Module):
