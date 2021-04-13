@@ -51,8 +51,6 @@ parser.add_argument('-bs', '--batch_size', type=int, default=100, metavar='BATCH
 parser.add_argument('-lr', '--learning_rate', type=float, default=0.00001, metavar='LEARNING_RATE',
                     help='learning rate')
 
-parser.add_argument('-w', '--warmup', type=int, default=20, metavar='N',
-                    help='number of epochs for warm-up. Set to 0 to turn warmup off.')
 parser.add_argument('-a', '--anneal', type=str, default="std", choices= ["std", "off", "kl"], help="beta annealing scheme")
 parser.add_argument('--max_beta', type=float, default=1., metavar='MB',
                     help='max beta for warm-up')
@@ -107,7 +105,7 @@ def run(args):
     decoder = MLP_decoder(args)
     if args.flow == "planar":
         model = VAE.PlanarVAE(encoder, decoder, args)
-    elif args.flow == "NICE":
+    elif args.flow == "NICE": # NICE-planar
         model = VAE.NICEVAE_amor(encoder, decoder, args)
     elif args.flow == "NICE_MLP":
         model = VAE.NICEVAE(encoder, decoder, args)
@@ -130,14 +128,6 @@ def run(args):
     print(model)
 
     optimizer = optim.RMSprop(model.parameters(), lr=args.learning_rate, momentum=0.9)
-    # optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
-    # optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=5e-4)
-    # milestones = [100, 200, 300, 400]
-    # scheduler = torch.optim.lr_scheduler.MultiStepLR(
-    #     optimizer, milestones=milestones, gamma=0.2
-    # )
-    
 
     #### Training
     train_loss = []
@@ -152,8 +142,6 @@ def run(args):
 
         v_loss = evaluate(val_loader, model, args)
         val_loss.append(v_loss)
-
-        # scheduler.step()
 
 
     train_loss = np.hstack(train_loss)
@@ -171,7 +159,8 @@ def run(args):
 
     elapsed = time.time() - t
     results["Running time"] = elapsed
-    
+
+    # Save the results.
     json_dir = args.out_dir + f"{args.flow}perm_k_{args.num_flows}_RMSProp_lr{args.learning_rate}_4"
     print("Saving data at: " + json_dir)
     output_folder = pathlib.Path(json_dir)

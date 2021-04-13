@@ -112,7 +112,7 @@ class Coupling_amor(nn.Module):
         """Initialize a coupling layer.
         Args:
             Coupling with only 1 hidden layer
-            mask_config: 1 if transform odd units, 0 if transform even units.
+            input_dim: input dimensions
         """
         super(Coupling_amor, self).__init__()
         self.h = nn.Tanh()
@@ -129,11 +129,6 @@ class Coupling_amor(nn.Module):
             transformed tensor.
         """
         [B, W] = list(x.size())
-        # Random permutation
-        # perm = torch.randperm(W)
-        # eye = torch.eye(W)
-        # P = eye[perm, :].cuda()
-        # PT = P.t()
         x = x @ self.P
 
         x = x.reshape((B, W//2, 2))
@@ -157,8 +152,6 @@ class Scaling_amor(nn.Module):
     """
     def __init__(self):
         """Initialize a (log-)scaling layer.
-        Args:
-            dim: input/output dimensions.
         """
         super(Scaling_amor, self).__init__()
         # self.scale = nn.Parameter(
@@ -168,6 +161,7 @@ class Scaling_amor(nn.Module):
         """Forward pass.
         Args:
             x: input tensor.
+            scale: scaling tensor
         Returns:
             transformed tensor and log-determinant of Jacobian.
         """
@@ -223,7 +217,7 @@ class Sylvester(nn.Module):
 
         return f_z, log_det_jacobian
  
-# Test 3.9 Random Permutation
+#  Random Permutation
 # class AffineCoupling(torch.nn.Module):
 #     """
 #     Input:
@@ -261,7 +255,7 @@ class Sylvester(nn.Module):
         
 #         return z, log_det_j
 
-# Test 3.8 - alternate couplings with mask
+# alternate couplings with mask
 class AffineCoupling(torch.nn.Module):
     """
     Input:

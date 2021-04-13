@@ -78,9 +78,6 @@ class NICEFlow(nn.Module):
             transformed tensor in latent space Z.
         """
         self.log_det_j = 0.
-        # flow_0 = getattr(self, 'flow_' + str(0))
-        # z, log_det_jacobian = flow_0(z)
-        # self.log_det_j += log_det_jacobian
         for k in range(1, self.num_flows+1):           
             flow_k = getattr(self, 'flow_' + str(k))
             scale_k = getattr(self, 'scale_' + str(k))

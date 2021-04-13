@@ -207,7 +207,7 @@ class PlanarVAE(VAE):
 
 class NICEVAE(VAE):
     """
-    Variational auto-encoder with NICE flows in the encoder.
+    NICE-MLP
     """
 
     def __init__(self, encoder, decoder, args):
@@ -275,7 +275,7 @@ class NICEVAE(VAE):
 
 class NICEVAE_amor(VAE):
     """
-    Variational auto-encoder with NICE flows in the encoder.
+    NICE-planar
     """
 
     def __init__(self, encoder, decoder, args):
