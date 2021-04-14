@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 from utils.target_distribution import target_distribution
 from utils.distributions import normal_dist
 from utils.plot import plot_all_targets, plot_comparison
-from model.flows import Planar, FirstLayer, Coupling, Scaling
-from model.model import PlanarFlow, NICEFlow, NiceFlow
+from models.flows import Planar, FirstLayer, Coupling, Scaling
+from models.model import PlanarFlow, NICEFlow, NiceFlow
 
 import numpy as np
 #Loss function, Equation (15)
@@ -49,7 +49,7 @@ def train(model, opt, num_batches, batch_size, density):
 
     return loss
 
-def run(target, flow_type, num_flows, num_batches, batch_size, lr, resume=False):
+def run(target, flow_type, num_flows, learnable_affine, num_batches, batch_size, lr, resume=False):
 
     print("Density appoximation for test energy function " + target)
     loss = []
@@ -60,11 +60,11 @@ def run(target, flow_type, num_flows, num_batches, batch_size, lr, resume=False)
                        
         # Initializations
         if flow_type == "planar":
-            model = PlanarFlow(K=flow_length, z_size=z_size)
+            model = PlanarFlow(K=flow_length, z_size=z_size, learnable_affine=learnable_affine)
         elif flow_type == "NICE":
             # model = NICEFlow(K=flow_length, z_size=z_size)
-            model = NiceFlow(K=flow_length, z_size=z_size)
-        model_name = './ckpts/' + "target_" + target + "_" + flow_type + str(flow_length) + '.pth'
+            model = NiceFlow(K=flow_length, z_size=z_size, learnable_affine=learnable_affine)
+        model_name = 'logs/NICE/ckpts/' + "target_" + target + "_" + flow_type + str(flow_length) + '.pth'
         fig_name = target + flow_type + str(flow_length) + '.png'
         if resume:
             try:
@@ -78,7 +78,7 @@ def run(target, flow_type, num_flows, num_batches, batch_size, lr, resume=False)
         #Training for the target distribution
         train_loss = train(model, optimizer, num_batches, batch_size, density)
         torch.save(model.state_dict(), model_name)
-        plot_comparison(model, target, flow_length, fig_name)
+        plot_comparison(model, target, flow_length, fig_name, not_end = False)
 
         
         loss.append(train_loss)    
@@ -91,6 +91,7 @@ num_batches = 1000 * 200
 batch_size = 500   
 num_flows = [32]
 learning_rate = 1e-4
+learnable_affine = True 
 
 for target_distr in ["4", "1"]:
-    model, loss = run(target_distr, 'NICE', num_flows, num_batches, batch_size, lr = learning_rate, resume=False)
+    model, loss = run(target_distr, 'NICE', num_flows, learnable_affine, num_batches, batch_size, lr = learning_rate, resume=False)
