@@ -43,7 +43,7 @@ def plot_flow_density(model, axlim, ax=None):
     ax.set_facecolor(plt.cm.jet(0.))
 
 
-def plot_comparison(model, target_distr, flow_length, fig_name='comparison'):
+def plot_comparison(model, target_distr, flow_length, fig_name='comparison', not_end = True):
     axlim = 4
     fig, axes = plt.subplots(ncols=2, nrows=1, figsize=[20, 5])
  
@@ -57,7 +57,8 @@ def plot_comparison(model, target_distr, flow_length, fig_name='comparison'):
     axes[1].set_title(f"Estimated density of potential number '{target_distr}'", size=14)
 
     plt.savefig(fig_name)
-
+    if not_end:
+        plt.close() 
 
 def plot_all_targets():
     target_distributions = ["1", "2", "3", "4"]

@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
-from model.flows import Planar, FirstLayer, Coupling, Scaling, Coupling_MLP
+from models.flows import Planar, FirstLayer, Coupling, Scaling, Coupling_MLP
 
 class PlanarFlow(nn.Module):  ##PlanarVI without VAEs
     """
     Stacking planar transformations
     """
 
-    def __init__(self, K, z_size):
+    def __init__(self, K, z_size, learnable_affine):
         super(PlanarFlow, self).__init__()
 
         # Initialize log-det-jacobian to zero
@@ -18,7 +18,7 @@ class PlanarFlow(nn.Module):  ##PlanarVI without VAEs
         self.num_flows = K
         
         #First layer 
-        flow_0 = q_0(z_size)
+        flow_0 = q_0(z_size, learnable_affine)
         self.add_module('flow_' + str(0), flow_0)
         
         # Normalizing flow layers
@@ -45,7 +45,7 @@ class PlanarFlow(nn.Module):  ##PlanarVI without VAEs
         return z, self.log_det_j 
     
 class NICEFlow(nn.Module):
-    def __init__(self, K, z_size):
+    def __init__(self, K, z_size, learnable_affine):
         """Initialize a NICE flow.
         Args:
             K: number of coupling layers.
@@ -57,7 +57,7 @@ class NICEFlow(nn.Module):
         self.num_flows = K
         
         #First layer 
-        flow_0 = q_0(z_size)
+        flow_0 = q_0(z_size, learnable_affine)
         self.add_module('flow_' + str(0), flow_0)
         
         # Normalizing flow layers
@@ -88,7 +88,7 @@ class NICEFlow(nn.Module):
         return z, self.log_det_j
 
 class NiceFlow(nn.Module):
-    def __init__(self, K, z_size):
+    def __init__(self, K, z_size, learnable_affine):
         """Initialize a NICE flow.
         Args:
             K: number of coupling layers.
@@ -100,7 +100,7 @@ class NiceFlow(nn.Module):
         self.num_flows = K
         
         #First layer 
-        flow_0 = q_0(z_size)
+        flow_0 = q_0(z_size, learnable_affine)
         self.add_module('flow_' + str(0), flow_0)
         
         # Normalizing flow layers

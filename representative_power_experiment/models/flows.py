@@ -34,10 +34,10 @@ class Planar(nn.Module):   #PLanar Transfromation
 
 #First layer is a mapping from standard normal to a diagonal Gaussian, N(z|mu, var) -- mu and var are learnable parameters.
 class FirstLayer(nn.Module):
-    def __init__(self, z_size):
+    def __init__(self, z_size, learnable):
         super().__init__()
-        self.mu = nn.Parameter(torch.zeros(z_size)).requires_grad_(True)
-        self.logvar = nn.Parameter(torch.zeros(z_size)).requires_grad_(True)
+        self.mu = nn.Parameter(torch.zeros(z_size)).requires_grad_(learnable)
+        self.logvar = nn.Parameter(torch.zeros(z_size)).requires_grad_(learnable)
     
     def forward(self, z):                                                 
         f_z = self.mu + self.logvar.exp() * z 
