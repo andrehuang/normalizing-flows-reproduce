@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 from utils.target_distribution import target_distribution
 from utils.distributions import normal_dist
 from utils.plot import plot_all_targets, plot_comparison
-from model.flows import Planar, FirstLayer, Coupling, Scaling
-from model.model import PlanarFlow, NICEFlow, NiceFlow
+from models.flows import Planar, FirstLayer, Coupling, Scaling
+from models.model import PlanarFlow, NICEFlow, NiceFlow
 
 import numpy as np
 #Loss function, Equation (15)
