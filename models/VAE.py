@@ -28,7 +28,8 @@ class VAE(nn.Module):
         self.var = nn.Sequential(
             nn.Linear(self.encoder_dim, self.z_size),
             nn.Softplus(), # to make var positive
-            nn.Hardtanh(min_val=1e-4, max_val=5.))
+            # nn.Hardtanh(min_val=1e-4, max_val=5.)  # Stability option
+            )
 
         
         # Note MNIST is binarized; need add Sigmoid() function
@@ -111,7 +112,6 @@ class VAE(nn.Module):
         return mu, var
 
     def decode(self, z):
-        z = z.view(z.size(0), self.z_size, 1, 1)
         h = self.decoder(z)
         x_mean = self.p_mu(h)
 
@@ -129,7 +129,7 @@ class VAE(nn.Module):
         z = self.reparameterize(z_mu, z_var)
         x_mean = self.decode(z)
 
-        return x_mean, z_mu, z_var, self.log_det_j, z, z  # the lst three outputs are useless; only to match outputs of flowVAE
+        return x_mean, z_mu, z_var, self.log_det_j, z, z  # the last three outputs are useless; only to match outputs of flowVAE
 
 
 class PlanarVAE(VAE):
@@ -208,6 +208,7 @@ class PlanarVAE(VAE):
 class NICEVAE(VAE):
     """
     NICE-MLP
+    Flow parameters are independent from the data
     """
 
     def __init__(self, encoder, decoder, args):
@@ -276,6 +277,7 @@ class NICEVAE(VAE):
 class NICEVAE_amor(VAE):
     """
     NICE-planar
+    Flow parameters are dependent on the data
     """
 
     def __init__(self, encoder, decoder, args):
@@ -342,7 +344,6 @@ class NICEVAE_amor(VAE):
         # Normalizing flows
         for k in range(self.num_flows):
             flow_k = getattr(self, 'flow_' + str(k))
-            # scale_k = getattr(self, 'scale_' + str(k))
             z_k = flow_k(z[k], u[:, k, :, :], w[:, k, :, :], b[:, k, :, :])
             z.append(z_k)
             self.log_det_j += 0
